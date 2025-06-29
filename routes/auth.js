@@ -18,9 +18,19 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
+const forgotPasswordValidation = [
+  body('email').isEmail().withMessage('Please provide a valid email')
+];
+
+const resetPasswordValidation = [
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+];
+
 // Routes
 router.post('/register', registerValidation, authController.register);
 router.post('/login', loginValidation, authController.login);
+router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
+router.put('/reset-password/:token', resetPasswordValidation, authController.resetPassword);
 router.get('/me', protect, authController.getMe);
 router.put('/updatedetails', protect, authController.updateDetails);
 router.put('/updatepassword', protect, authController.updatePassword);

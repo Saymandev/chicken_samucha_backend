@@ -9,7 +9,7 @@ const Settings = require('../models/Settings');
 // Dashboard Statistics
 exports.getDashboardStats = async (req, res) => {
   try {
-    console.log('📊 Fetching dashboard statistics...');
+    
     
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -37,7 +37,7 @@ exports.getDashboardStats = async (req, res) => {
       Order.countDocuments({ orderStatus: 'delivered' })
     ]);
 
-    console.log('📈 Basic counts:', { totalUsers, totalOrders, totalProducts, totalReviews, approvedReviews, pendingOrders, completedOrders });
+   
 
     // Revenue calculations - exclude cancelled orders
     const revenueData = await Order.aggregate([
@@ -83,11 +83,7 @@ exports.getDashboardStats = async (req, res) => {
       }
     ]);
 
-    console.log('💰 Revenue data:', { 
-      total: revenueData[0]?.totalRevenue || 0,
-      monthly: monthlyRevenueData[0]?.monthlyRevenue || 0,
-      lastMonth: lastMonthRevenueData[0]?.lastMonthRevenue || 0
-    });
+    
 
     // Users this month
     const newUsersThisMonth = await User.countDocuments({
@@ -115,7 +111,7 @@ exports.getDashboardStats = async (req, res) => {
       }
     ]);
 
-    console.log('⭐ Rating data:', avgRatingData[0] || { averageRating: 0, totalReviews: 0 });
+    
 
     // Pending reviews (not approved yet)
     const pendingReviews = await Review.countDocuments({
@@ -130,7 +126,7 @@ exports.getDashboardStats = async (req, res) => {
       .select('orderNumber user customer finalAmount orderStatus createdAt paymentInfo')
       .lean();
 
-    console.log('📋 Recent orders count:', recentOrders.length);
+ 
 
     // Top products by order frequency
     const topProducts = await Order.aggregate([
@@ -164,7 +160,7 @@ exports.getDashboardStats = async (req, res) => {
       { $limit: 5 }
     ]);
 
-    console.log('🏆 Top products count:', topProducts.length);
+    
 
     // Calculate growth percentages
     const currentRevenue = monthlyRevenueData[0]?.monthlyRevenue || 0;
@@ -217,13 +213,7 @@ exports.getDashboardStats = async (req, res) => {
       ]
     };
 
-    console.log('📊 Final stats:', {
-      users: stats.totalUsers,
-      orders: stats.totalOrders,
-      revenue: stats.totalRevenue,
-      rating: stats.averageRating,
-      reviews: stats.totalReviews
-    });
+    
 
     res.json({ success: true, stats });
   } catch (error) {
@@ -294,7 +284,7 @@ exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    console.log('Updating order status:', { orderId, status });
+   
 
     const updateData = { orderStatus: status };
 
@@ -313,7 +303,7 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    console.log('Order status updated successfully:', order.orderNumber, '->', status);
+    
 
     res.json({ success: true, message: 'Order status updated successfully', order });
   } catch (error) {
@@ -326,7 +316,7 @@ exports.updateOrderStatus = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
   try {
     const { orderId } = req.params;
-    console.log('Verifying payment for order:', orderId);
+   
     
     const order = await Order.findById(orderId);
     
@@ -346,7 +336,7 @@ exports.verifyPayment = async (req, res) => {
     
     await order.save();
 
-    console.log('Payment verified for order:', order.orderNumber);
+    
     res.json({ success: true, message: 'Payment verified successfully', order });
   } catch (error) {
     console.error('Verify payment error:', error);
@@ -494,7 +484,7 @@ exports.getPaymentSettings = async (req, res) => {
 
 exports.updatePaymentSettings = async (req, res) => {
   try {
-    console.log('Updating payment settings:', req.body);
+    
     const updatedSettings = await Settings.savePaymentSettings(req.body, req.user?.id);
     res.json({ 
       success: true, 

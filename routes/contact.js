@@ -104,7 +104,7 @@ router.post('/message', async (req, res) => {
     };
 
     // Mock saving to database
-    console.log('Contact message received:', contactMessage);
+    
 
     // In production, you might want to:
     // 1. Save to database
@@ -149,7 +149,7 @@ router.post('/newsletter', async (req, res) => {
       isActive: true
     };
 
-    console.log('Newsletter subscription:', subscription);
+    
 
     res.status(201).json({
       success: true,
@@ -420,7 +420,7 @@ router.post('/cookie-preferences', async (req, res) => {
     const { preferences } = req.body;
 
     // In production, save preferences to database or cookies
-    console.log('Cookie preferences saved:', preferences);
+    
 
     res.json({
       success: true,
@@ -458,7 +458,7 @@ router.post('/subscribe', async (req, res) => {
       isActive: true
     };
 
-    console.log('Notification subscription:', subscription);
+   
 
     res.status(201).json({
       success: true,

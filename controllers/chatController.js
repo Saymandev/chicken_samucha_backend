@@ -4,10 +4,7 @@ const { ChatMessage, ChatSession } = require('../models/ChatMessage');
 // Start chat session
 const startChatSession = async (req, res) => {
   try {
-    console.log('=== START CHAT SESSION DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('User:', req.user ? `${req.user.id} (${req.user.name})` : 'No user');
-    console.log('Timestamp:', new Date().toISOString());
+    
 
     const { customerInfo, category = 'general' } = req.body;
 
@@ -27,13 +24,13 @@ const startChatSession = async (req, res) => {
       }).sort({ createdAt: -1 });
 
       if (existingSessions.length > 1) {
-        console.log(`🧹 Found ${existingSessions.length} duplicate sessions for user, cleaning up...`);
+        
         const sessionsToClose = existingSessions.slice(1); // Keep the first (most recent), close others
         await ChatSession.updateMany(
           { _id: { $in: sessionsToClose.map(s => s._id) } },
           { status: 'closed', endedAt: new Date() }
         );
-        console.log(`✅ Closed ${sessionsToClose.length} duplicate sessions`);
+        
       }
     } else if (customerInfo.email) {
       // For guests, clean up duplicates by email
@@ -44,13 +41,13 @@ const startChatSession = async (req, res) => {
       }).sort({ createdAt: -1 });
 
       if (existingSessions.length > 1) {
-        console.log(`🧹 Found ${existingSessions.length} duplicate guest sessions, cleaning up...`);
+        
         const sessionsToClose = existingSessions.slice(1);
         await ChatSession.updateMany(
           { _id: { $in: sessionsToClose.map(s => s._id) } },
           { status: 'closed', endedAt: new Date() }
         );
-        console.log(`✅ Closed ${sessionsToClose.length} duplicate guest sessions`);
+        
       }
     }
 
@@ -62,7 +59,7 @@ const startChatSession = async (req, res) => {
         'customer.user': req.user.id,
         status: { $in: ['active', 'waiting'] }
       });
-      console.log('🔍 Found existing session for user:', session ? session.chatId : 'No existing session');
+      
     } else if (customerInfo.email) {
       // For guests, try to find by email AND name to be more specific
       session = await ChatSession.findOne({
@@ -71,7 +68,7 @@ const startChatSession = async (req, res) => {
         'customer.isGuest': true,
         status: { $in: ['active', 'waiting'] }
       });
-      console.log('🔍 Found existing session for guest:', session ? session.chatId : 'No existing session');
+      
     }
 
     // If no session found by email, try to find by phone (as backup)
@@ -81,7 +78,7 @@ const startChatSession = async (req, res) => {
         'customer.name': customerInfo.name,
         status: { $in: ['active', 'waiting'] }
       });
-      console.log('🔍 Found existing session by phone:', session ? session.chatId : 'No existing session');
+     
     }
 
     if (!session) {
@@ -98,9 +95,9 @@ const startChatSession = async (req, res) => {
         status: 'waiting'
       };
 
-      console.log('Creating new session with data:', sessionData);
+      
       session = await ChatSession.create(sessionData);
-      console.log('✅ New session created:', session.chatId);
+      
 
       // Notify admin dashboard about new chat session
       if (global.io) {
@@ -111,10 +108,10 @@ const startChatSession = async (req, res) => {
           status: session.status,
           timestamp: session.createdAt
         });
-        console.log('✅ New chat session broadcasted to admin dashboard');
+        
       }
     } else {
-      console.log('🔄 Reusing existing session:', session.chatId);
+      
       
       // Update session to ensure it's active
       session = await ChatSession.findByIdAndUpdate(
@@ -125,10 +122,10 @@ const startChatSession = async (req, res) => {
         },
         { new: true }
       );
-      console.log('📝 Updated existing session status:', session.status);
+     
     }
     
-    console.log('Session result:', session);
+   
 
     // Final check: ensure no other active sessions exist for this user
     const finalCheck = await ChatSession.countDocuments({
@@ -139,7 +136,7 @@ const startChatSession = async (req, res) => {
     });
     
     if (finalCheck > 0) {
-      console.log(`⚠️ WARNING: Found ${finalCheck} other active sessions after creation!`);
+    
     }
 
     // Return the session with chatId for frontend compatibility
@@ -201,9 +198,7 @@ const getChatSession = async (req, res) => {
 // Get chat messages
 const getChatMessages = async (req, res) => {
   try {
-    console.log('=== GET CHAT MESSAGES DEBUG ===');
-    console.log('ChatId:', req.params.chatId);
-    console.log('Request URL:', req.originalUrl);
+    
 
     const { page = 1, limit = 50 } = req.query;
 
@@ -216,17 +211,9 @@ const getChatMessages = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    console.log(`📨 Found ${messages.length} messages for chat ${req.params.chatId}`);
     
-    if (messages.length > 0) {
-      console.log('📋 Sample message:', {
-        id: messages[0]._id,
-        message: messages[0].message,
-        messageType: messages[0].messageType,
-        attachments: messages[0].attachments?.length || 0,
-        senderName: messages[0].senderInfo?.name
-      });
-    }
+    
+    
 
     // Transform messages to match frontend interface
     const transformedMessages = messages.map(msg => ({
@@ -241,7 +228,7 @@ const getChatMessages = async (req, res) => {
       isRead: msg.isRead
     }));
 
-    console.log(`✅ Returning ${transformedMessages.length} transformed messages`);
+   
 
     res.json({
       success: true,
@@ -261,10 +248,7 @@ const getChatMessages = async (req, res) => {
 // Send message
 const sendMessage = async (req, res) => {
   try {
-    console.log('=== SEND MESSAGE DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    console.log('User:', req.user ? req.user.id : 'No user');
+    
 
     const { chatId, message } = req.body;
 
@@ -300,7 +284,7 @@ const sendMessage = async (req, res) => {
 
     // Handle file attachment
     if (req.file && req.file.path) {
-      console.log('File attachment detected:', req.file);
+      
       messageData.messageType = req.file.mimetype.startsWith('image/') ? 'image' : 'file';
       messageData.attachments = [{
         type: req.file.mimetype.startsWith('image/') ? 'image' : 'document',
@@ -316,13 +300,10 @@ const sendMessage = async (req, res) => {
       }
     }
 
-    console.log('Creating message with data:', messageData);
+    
 
         const chatMessage = await ChatMessage.create(messageData);
-    console.log('✅ Message saved to database with ID:', chatMessage._id);
-    console.log('✅ Message content:', chatMessage.message);
-    console.log('✅ Message type:', chatMessage.messageType);
-    console.log('✅ Attachments:', chatMessage.attachments?.length || 0);
+    
 
     // Update session with last message and activate if waiting
     const updateData = {
@@ -342,7 +323,7 @@ const sendMessage = async (req, res) => {
       updateData,
       { new: true }
     );
-    console.log('✅ Chat session updated successfully');
+    
 
     // If status changed from waiting to active, emit status change
     if (session.status === 'waiting' && updatedSession.status === 'active') {
@@ -352,7 +333,7 @@ const sendMessage = async (req, res) => {
           status: 'active',
           adminName: null
         });
-        console.log('✅ Chat status changed from waiting to active and broadcasted');
+        
       }
     }
 
@@ -382,10 +363,10 @@ const sendMessage = async (req, res) => {
 
       // Send to specific chat room (for real-time messages in chat view)
       global.io.to(chatMessage.chatId).emit('receive-message', transformedMessage);
-      console.log('✅ Customer message broadcasted to admin dashboard and chat room');
+      
     }
 
-    console.log('✅ Message saved successfully');
+    
 
     res.status(201).json({
       success: true,
@@ -605,9 +586,7 @@ const updateChatStatus = async (req, res) => {
 // Send admin message
 const sendAdminMessage = async (req, res) => {
   try {
-    console.log('=== SEND ADMIN MESSAGE DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Admin user:', req.user.name);
+    
 
     const { chatId, message } = req.body;
 
@@ -625,7 +604,7 @@ const sendAdminMessage = async (req, res) => {
     };
 
     const chatMessage = await ChatMessage.create(messageData);
-    console.log('✅ Admin message saved:', chatMessage._id);
+    
 
     // Update session
     await ChatSession.findOneAndUpdate(
@@ -655,7 +634,7 @@ const sendAdminMessage = async (req, res) => {
     // Emit to customer via Socket.IO
     if (global.io) {
       global.io.to(chatId).emit('receive-message', transformedMessage);
-      console.log('✅ Admin message broadcasted via socket');
+      
     }
 
     res.status(201).json({
@@ -675,7 +654,7 @@ const sendAdminMessage = async (req, res) => {
 // Cleanup duplicate sessions (can be called via admin endpoint)
 const cleanupDuplicateSessions = async (req, res) => {
   try {
-    console.log('=== CLEANUP DUPLICATE SESSIONS ===');
+    
     
     // Find all users with multiple active/waiting sessions
     const duplicates = await ChatSession.aggregate([
@@ -721,7 +700,7 @@ const cleanupDuplicateSessions = async (req, res) => {
       closedCount += sessionsToClose.length;
     }
 
-    console.log(`✅ Cleaned up ${closedCount} duplicate sessions`);
+    
 
     res.json({
       success: true,

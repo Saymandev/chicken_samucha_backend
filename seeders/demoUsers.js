@@ -6,9 +6,9 @@ const config = require('../config/config');
 const connectDB = async () => {
   try {
     const connection = await mongoose.connect(config.MONGODB_URI);
-    console.log(`MongoDB Connected: ${connection.connection.host}`);
+    
   } catch (error) {
-    console.error(`Database connection error: ${error.message}`);
+   
     process.exit(1);
   }
 };
@@ -68,14 +68,14 @@ const demoUsers = [
 // Seed demo users
 const seedDemoUsers = async () => {
   try {
-    console.log('🌱 Starting demo user seeding...');
+    
 
     // Check if demo users already exist
     const existingAdmin = await User.findOne({ email: 'admin@chickensamosa.com' });
     const existingUser = await User.findOne({ email: 'user@example.com' });
 
     if (existingAdmin && existingUser) {
-      console.log('✅ Demo users already exist!');
+      
       return;
     }
 
@@ -89,14 +89,9 @@ const seedDemoUsers = async () => {
     // Create demo users
     for (const userData of demoUsers) {
       const user = await User.create(userData);
-      console.log(`✅ Created user: ${user.name} (${user.email})`);
+     
     }
 
-    console.log('🎉 Demo users seeded successfully!');
-    console.log('\n📝 Demo Credentials:');
-    console.log('👤 Admin: admin@chickensamosa.com / admin123');
-    console.log('👤 User: user@example.com / user123');
-    console.log('👤 Bengali User: rahim@example.com / rahim123');
 
   } catch (error) {
     console.error('❌ Error seeding demo users:', error.message);
@@ -108,7 +103,7 @@ const runSeeder = async () => {
   try {
     await connectDB();
     await seedDemoUsers();
-    console.log('\n✨ Seeding completed!');
+    
     process.exit(0);
   } catch (error) {
     console.error('❌ Seeder failed:', error);

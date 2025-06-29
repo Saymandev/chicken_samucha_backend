@@ -105,14 +105,11 @@ const getFeaturedReviews = async (req, res) => {
 // Create review
 const createReview = async (req, res) => {
   try {
-    console.log('=== CREATE REVIEW DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    console.log('User:', req.user ? req.user.id : 'No user');
+    
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+     
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -129,15 +126,7 @@ const createReview = async (req, res) => {
     const commentEn = req.body['comment.en'];
     const commentBn = req.body['comment.bn'];
 
-    console.log('Parsed fields:', {
-      customerName,
-      customerEmail,
-      customerPhone,
-      product,
-      rating,
-      commentEn,
-      commentBn
-    });
+   
 
     let productId = null;
     
@@ -157,10 +146,10 @@ const createReview = async (req, res) => {
         
         if (foundProduct) {
           productId = foundProduct._id;
-          console.log(`Found product: ${foundProduct.name.en} (ID: ${productId})`);
+         
         } else {
           // Product not found, we'll create a general review without specific product
-          console.log(`Product "${product}" not found, creating general review`);
+          
         }
       }
     }
@@ -199,7 +188,7 @@ const createReview = async (req, res) => {
       originalProductName: productId ? undefined : product
     };
 
-    console.log('Final review data:', reviewData);
+    
 
     // Handle uploaded images
     if (req.files && req.files.length > 0) {
@@ -231,9 +220,7 @@ const createReview = async (req, res) => {
 // Get all reviews (admin)
 const getAllReviews = async (req, res) => {
   try {
-    console.log('=== GET ALL REVIEWS (ADMIN) ===');
-    console.log('Query params:', req.query);
-    console.log('User:', req.user ? req.user.id : 'No user');
+   
 
     const { 
       page = 1, 
@@ -261,7 +248,7 @@ const getAllReviews = async (req, res) => {
       ];
     }
 
-    console.log('Final query:', query);
+    
 
     const reviews = await Review.find(query)
       .populate('product', 'name')
@@ -272,7 +259,7 @@ const getAllReviews = async (req, res) => {
 
     const total = await Review.countDocuments(query);
 
-    console.log(`Found ${reviews.length} reviews, total: ${total}`);
+    
 
     res.json({
       success: true,

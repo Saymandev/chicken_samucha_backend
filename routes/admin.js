@@ -88,18 +88,11 @@ router.get('/products', async (req, res) => {
 
 router.post('/products', 
   (req, res, next) => {
-    console.log('=== MIDDLEWARE DEBUG ===');
-    console.log('Request Content-Type:', req.get('Content-Type'));
-    console.log('Request headers:', req.headers);
-    console.log('Request body type:', typeof req.body);
-    console.log('Request files before multer:', req.files);
     next();
   },
   upload.productImages.array('images', 5),
   (req, res, next) => {
-    console.log('=== AFTER MULTER ===');
-    console.log('Request files after multer:', req.files);
-    console.log('Request body after multer:', req.body);
+    
     next();
   },
   [
@@ -149,9 +142,7 @@ router.delete('/products/:id', productController.deleteProduct);
 const reviewController = require('../controllers/reviewController');
 
 router.get('/reviews', (req, res, next) => {
-  console.log('=== ADMIN REVIEWS ROUTE HIT ===');
-  console.log('Query:', req.query);
-  console.log('User:', req.user ? req.user.email : 'No user');
+  
   next();
 }, reviewController.getAllReviews);
 
@@ -163,17 +154,12 @@ router.delete('/reviews/:id', reviewController.deleteReview);
 // Debug route to test file uploads
 router.post('/test-upload', 
   (req, res, next) => {
-    console.log('=== TEST UPLOAD DEBUG ===');
-    console.log('Content-Type:', req.get('Content-Type'));
-    console.log('Body:', req.body);
-    console.log('Files before multer:', req.files);
+    
     next();
   },
   upload.productImages.array('images', 5),
   (req, res) => {
-    console.log('=== TEST UPLOAD RESULT ===');
-    console.log('Files after multer:', req.files);
-    console.log('Body after multer:', req.body);
+    
     
     res.json({
       success: true,

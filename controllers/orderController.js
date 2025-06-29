@@ -6,15 +6,12 @@ const User = require('../models/User');
 // Create new order
 const createOrder = async (req, res) => {
   try {
-    console.log('=== CREATE ORDER DEBUG ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    console.log('Request file:', req.file);
-    console.log('===========================');
+    
 
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+      
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -24,24 +21,18 @@ const createOrder = async (req, res) => {
 
     const { customer, items, paymentInfo, deliveryInfo, notes } = req.body;
     
-    console.log('Extracted data:', {
-      customer,
-      items,
-      paymentInfo,
-      deliveryInfo,
-      notes
-    });
+    
 
     // Validate and calculate items
     let totalAmount = 0;
     const orderItems = [];
 
-    console.log('Processing items:', items);
+    
 
     for (const item of items) {
-      console.log('Processing item:', item);
+      
       const product = await Product.findById(item.product);
-      console.log('Found product:', product ? product.name : 'Not found');
+      
       
       if (!product) {
         return res.status(404).json({
@@ -150,9 +141,9 @@ const createOrder = async (req, res) => {
       };
     }
 
-    console.log('Creating order with data:', JSON.stringify(orderData, null, 2));
+   
     const order = await Order.create(orderData);
-    console.log('Order created successfully:', order.orderNumber);
+   
 
     // Emit real-time notification to admin
     if (req.io) {
@@ -290,13 +281,12 @@ const trackOrder = async (req, res) => {
 // Enhanced order tracking with phone verification
 const trackOrderWithPhone = async (req, res) => {
   try {
-    console.log('=== TRACK ORDER DEBUG ===');
-    console.log('Request body:', req.body);
+    
 
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+      
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -316,8 +306,7 @@ const trackOrderWithPhone = async (req, res) => {
       `0${phone.replace(/^(\+880|0)/, '')}`
     ];
 
-    console.log('Searching for order:', orderNumber);
-    console.log('Phone variants:', phoneVariants);
+    
 
     const order = await Order.findOne({ 
       orderNumber: orderNumber.toUpperCase(),
@@ -326,7 +315,7 @@ const trackOrderWithPhone = async (req, res) => {
     .populate('items.product', 'name images')
     .select('-adminNotes -paymentInfo.screenshot');
 
-    console.log('Order found:', !!order);
+   
 
     if (!order) {
       return res.status(404).json({
@@ -387,7 +376,7 @@ const trackOrderWithPhone = async (req, res) => {
       }
     };
 
-    console.log('Sending response:', response);
+   
 
     res.json({
       success: true,

@@ -1,7 +1,9 @@
 const { validationResult } = require('express-validator');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const { generateToken } = require('../middleware/auth');
+const emailService = require('../services/emailService');
 
 // Register user
 const register = async (req, res) => {
@@ -41,6 +43,14 @@ const register = async (req, res) => {
 
     // Generate token
     const token = generateToken(user._id);
+
+    // Send welcome email (don't block registration if email fails)
+    try {
+      await emailService.sendWelcomeEmail(user.email, user.name);
+    } catch (emailError) {
+      console.error('Welcome email failed:', emailError);
+      // Continue with registration even if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -329,6 +339,136 @@ const trackGuestOrder = async (req, res) => {
   }
 };
 
+// Forgot password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an email address'
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'There is no user with that email'
+      });
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    try {
+      // Send email using Gmail API
+      await emailService.sendPasswordResetEmail(user.email, resetToken);
+
+      res.status(200).json({
+        success: true,
+        message: 'Password reset email sent successfully',
+        data: {
+          // In development, you might want to return the token for testing
+          // Remove this in production!
+          resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+        }
+      });
+    } catch (err) {
+      console.error('Email sending error:', err);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        success: false,
+        message: 'Email could not be sent. Please try again later.'
+      });
+    }
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a password'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid token or token has expired'
+      });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    // Generate new token for login
+    const authToken = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful',
+      token: authToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        preferredLanguage: user.preferredLanguage,
+        preferredTheme: user.preferredTheme
+      }
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -336,5 +476,7 @@ module.exports = {
   updateDetails,
   updatePassword,
   logout,
-  trackGuestOrder
+  trackGuestOrder,
+  forgotPassword,
+  resetPassword
 }; 

@@ -27,6 +27,9 @@ const chatRoutes = require('./routes/chat');
 const contactRoutes = require('./routes/contact');
 const paymentRoutes = require('./routes/payments');
 
+// OAuth setup routes (for development/setup only)
+const oauthSetupRoutes = require('./routes/oauth-setup');
+
 // Models for Socket.IO
 const { ChatMessage, ChatSession } = require('./models/ChatMessage');
 
@@ -110,6 +113,11 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payments', paymentRoutes);
 
+// OAuth setup routes (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/oauth', oauthSetupRoutes);
+}
+
 // Handle upload errors
 app.use(handleUploadError);
 
@@ -158,11 +166,11 @@ app.get('/api/health', (req, res) => {
 
 // Socket.IO event handling
 io.on('connection', (socket) => {
-  console.log('✅ Socket connected:', socket.id);
+ 
 
   // User joins a chat room
   socket.on('join-chat', (chatId) => {
-    console.log(`👤 User ${socket.id} joined chat: ${chatId}`);
+   
     socket.join(chatId);
     
     // Notify admin dashboard about new user in chat
@@ -171,21 +179,20 @@ io.on('connection', (socket) => {
 
   // Admin joins the admin dashboard
   socket.on('join-admin-dashboard', () => {
-    console.log(`👨‍💼 Admin ${socket.id} joined admin dashboard`);
+   
     socket.join('admin-dashboard');
   });
 
   // Admin joins a specific chat
   socket.on('join-admin-chat', (chatId) => {
-    console.log(`👨‍💼 Admin ${socket.id} joined admin chat: ${chatId}`);
+   
     socket.join(chatId);
   });
 
   // Handle message sending from any source (user or admin)
   socket.on('send-message', async (messageData) => {
     try {
-      console.log('📨 Received message via socket:', messageData);
-      
+     
       const { chatId, message, senderId, senderName, senderType } = messageData;
       
       // Broadcast to all users in the chat room
@@ -209,7 +216,7 @@ io.on('connection', (socket) => {
         });
       }
 
-      console.log('✅ Message broadcasted successfully');
+      
     } catch (error) {
       console.error('❌ Socket message error:', error);
     }
@@ -241,7 +248,7 @@ io.on('connection', (socket) => {
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    console.log('❌ Socket disconnected:', socket.id);
+    
   });
 });
 
@@ -249,5 +256,5 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`Socket.IO server ready for connections`);
+ 
 }); 

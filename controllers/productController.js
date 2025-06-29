@@ -151,17 +151,12 @@ const getProduct = async (req, res) => {
 // Create product (Admin only)
 const createProduct = async (req, res) => {
   try {
-    // Debug logging
-    console.log('=== CREATE PRODUCT DEBUG ===');
-    console.log('req.body:', req.body);
-    console.log('req.files:', req.files);
-    console.log('req.files length:', req.files ? req.files.length : 'undefined');
-    console.log('Files details:', req.files ? req.files.map(f => ({ filename: f.filename, originalname: f.originalname, path: f.path })) : 'none');
+    
 
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+     
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -186,7 +181,7 @@ const createProduct = async (req, res) => {
         productData.ingredients = JSON.parse(productData.ingredients);
       }
     } catch (parseError) {
-      console.log('JSON parsing error:', parseError);
+     
       return res.status(400).json({
         success: false,
         message: 'Invalid JSON data in form fields'
@@ -195,14 +190,14 @@ const createProduct = async (req, res) => {
 
     // Handle file uploads - more flexible validation
     if (req.files && req.files.length > 0) {
-      console.log('Processing uploaded files...');
+      
       productData.images = req.files.map(file => ({
         public_id: file.filename || file.public_id,
         url: file.path || file.secure_url
       }));
-      console.log('Processed images:', productData.images);
+      
     } else {
-      console.log('No files found in req.files');
+      
       // Check if it's a new product creation - require images
       return res.status(400).json({
         success: false,
@@ -210,14 +205,11 @@ const createProduct = async (req, res) => {
       });
     }
 
-    console.log('Final productData before creation:', {
-      ...productData,
-      images: productData.images ? `${productData.images.length} images` : 'no images'
-    });
+    
 
     const product = await Product.create(productData);
 
-    console.log('Product created successfully:', product._id);
+    
 
     res.status(201).json({
       success: true,
