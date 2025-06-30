@@ -17,6 +17,9 @@ const reviewValidation = [
 router.get('/', reviewController.getReviews);
 router.get('/featured', reviewController.getFeaturedReviews);
 
+// Protected routes
+router.get('/my-reviews', protect, reviewController.getMyReviews);
+
 // Review creation route with validation
 router.post('/', 
   optionalAuth, 

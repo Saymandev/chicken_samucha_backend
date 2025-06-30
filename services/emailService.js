@@ -22,8 +22,8 @@ class EmailService {
       const { token } = await this.oauth2Client.getAccessToken();
       return token;
     } catch (error) {
-      console.error('Error getting access token:', error);
-      throw error;
+      console.error('⚠️  Error getting access token:', error.message);
+      return null; // Return null instead of throwing
     }
   }
 
@@ -36,6 +36,12 @@ class EmailService {
       }
 
       const accessToken = await this.getAccessToken();
+      
+      // If access token failed, return null
+      if (!accessToken) {
+        console.warn('⚠️  Failed to get access token. Email sending disabled.');
+        return null;
+      }
 
       const transporter = nodemailer.createTransporter({
         service: 'gmail',
@@ -51,8 +57,8 @@ class EmailService {
 
       return transporter;
     } catch (error) {
-      console.error('Error creating transporter:', error);
-      throw error;
+      console.error('⚠️  Error creating transporter:', error.message);
+      return null; // Return null instead of throwing
     }
   }
 
@@ -105,8 +111,8 @@ class EmailService {
       console.log('Password reset email sent:', result);
       return result;
     } catch (error) {
-      console.error('Error sending password reset email:', error);
-      throw error;
+      console.error('⚠️  Error sending password reset email:', error.message);
+      return { error: error.message }; // Return error object instead of throwing
     }
   }
 
@@ -148,8 +154,8 @@ class EmailService {
       console.log('Welcome email sent:', result);
       return result;
     } catch (error) {
-      console.error('Error sending welcome email:', error);
-      throw error;
+      console.error('⚠️  Error sending welcome email:', error.message);
+      return { error: error.message }; // Return error object instead of throwing
     }
   }
 
@@ -191,8 +197,8 @@ class EmailService {
       console.log('Order confirmation email sent:', result);
       return result;
     } catch (error) {
-      console.error('Error sending order confirmation email:', error);
-      throw error;
+      console.error('⚠️  Error sending order confirmation email:', error.message);
+      return { error: error.message }; // Return error object instead of throwing
     }
   }
 }

@@ -457,10 +457,47 @@ const updateProductRating = async (productId) => {
   }
 };
 
+// Get user's own reviews (protected)
+const getMyReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query;
+
+    const query = { user: req.user.id };
+    
+    if (status) {
+      query.status = status;
+    }
+
+    const reviews = await Review.find(query)
+      .populate('product', 'name images')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Review.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      data: reviews,
+      total,
+      currentPage: parseInt(page),
+      totalPages
+    });
+  } catch (error) {
+    console.error('Get my reviews error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getReviews,
   getFeaturedReviews,
   createReview,
+  getMyReviews,
   getAllReviews,
   getReview,
   updateReviewStatus,

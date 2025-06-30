@@ -47,6 +47,20 @@ const returnRequestValidation = [
   body('reason').notEmpty().withMessage('Return reason is required')
 ];
 
+// Debug route for testing authentication
+router.get('/auth-test', protect, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Authentication working',
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+});
+
 // Public/User routes
 router.post('/', optionalAuth, upload.paymentScreenshot.single('paymentScreenshot'), createOrderValidation, orderController.createOrder);
 router.get('/my-orders', protect, orderController.getMyOrders);

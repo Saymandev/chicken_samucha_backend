@@ -203,34 +203,93 @@ const createOrder = async (req, res) => {
 // Get user's orders
 const getMyOrders = async (req, res) => {
   try {
+    console.log('🔍 GetMyOrders called for user:', req.user?.id);
+    
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      console.error('❌ User not authenticated in getMyOrders');
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated'
+      });
+    }
+
     const { page = 1, limit = 10, status } = req.query;
 
     const query = { user: req.user.id };
-    if (status) {
+    if (status && status !== 'all') {
       query.orderStatus = status;
     }
 
+    console.log('🔍 Orders query:', query);
+
     const orders = await Order.find(query)
-      .populate('items.product', 'name images')
+      .populate('items.product', 'name images price')
+      .populate('user', 'name email phone') // Add user population for additional context
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * limit)
+      .lean(); // Use lean for better performance
 
     const total = await Order.countDocuments(query);
 
+    console.log(`✅ Found ${orders.length} orders for user ${req.user.id}`);
+
+    // Transform orders to match frontend expectations
+    const transformedOrders = orders.map(order => ({
+      id: order._id.toString(),
+      orderNumber: order.orderNumber,
+      items: order.items.map(item => ({
+        product: {
+          name: item.product?.name || { en: 'Unknown Product', bn: 'অজানা পণ্য' },
+          images: item.product?.images || [],
+          price: item.product?.price || item.price
+        },
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.subtotal || (item.price * item.quantity)
+      })),
+      totalAmount: order.totalAmount,
+      deliveryCharge: order.deliveryCharge || 0,
+      discount: order.discount || 0,
+      finalAmount: order.finalAmount,
+      orderStatus: order.orderStatus,
+      paymentInfo: {
+        method: order.paymentInfo?.method || 'unknown',
+        status: order.paymentInfo?.status || 'pending',
+        transactionId: order.paymentInfo?.transactionId
+      },
+      deliveryInfo: order.deliveryInfo || { method: 'delivery' },
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      estimatedDeliveryTime: order.estimatedDeliveryTime,
+      customer: {
+        name: order.customer?.name || order.user?.name || 'Unknown Customer',
+        phone: order.customer?.phone || order.user?.phone || 'No phone',
+        email: order.customer?.email || order.user?.email,
+        address: order.customer?.address || {
+          street: 'Address not provided',
+          area: '',
+          city: 'Dhaka',
+          district: 'Dhaka'
+        }
+      }
+    }));
+
     res.json({
       success: true,
-      count: orders.length,
+      count: transformedOrders.length,
       total,
       totalPages: Math.ceil(total / limit),
       currentPage: parseInt(page),
-      orders
+      orders: transformedOrders
     });
   } catch (error) {
-    console.error('Get my orders error:', error);
+    console.error('❌ Get my orders error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to fetch orders. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
