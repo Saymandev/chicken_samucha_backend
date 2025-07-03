@@ -45,7 +45,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketio(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "https://chicken-samucha-frontend.vercel.app",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -89,7 +89,7 @@ app.use(hpp());
 
 // Enable CORS
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || 'https://chicken-samucha-frontend.vercel.app',
   credentials: true
 }));
 
@@ -303,8 +303,8 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`🏠 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🏠 Frontend URL: ${process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app'}`);
+  console.log(`📊 Health check: https://chicken-samucha-backend.onrender.com/api/health`);
   
   // Start server monitoring
   serverMonitor.startMonitoring();
