@@ -270,8 +270,8 @@ const getMyOrders = async (req, res) => {
         address: order.customer?.address || {
           street: 'Address not provided',
           area: '',
-          city: 'Dhaka',
-          district: 'Dhaka'
+          city: 'Rangpur',
+          district: 'Rangpur'
         }
       }
     }));

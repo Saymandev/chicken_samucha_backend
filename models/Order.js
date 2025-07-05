@@ -37,12 +37,12 @@ const orderSchema = new mongoose.Schema({
       city: {
         type: String,
         required: false,
-        default: 'Dhaka'
+        default: 'Rangpur'
       },
       district: {
         type: String,
         required: false,
-        default: 'Dhaka'
+        default: 'Rangpur'
       },
       postalCode: String,
       landmark: String
