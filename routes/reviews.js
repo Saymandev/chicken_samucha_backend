@@ -23,7 +23,7 @@ router.get('/my-reviews', protect, reviewController.getMyReviews);
 // Review creation route with validation
 router.post('/', 
   optionalAuth, 
-  upload.reviewImages.array('images', 3),
+  upload.reviewImages.array('images', 5), // Increased to 5 images
   reviewValidation, 
   reviewController.createReview
 );

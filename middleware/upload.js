@@ -79,7 +79,7 @@ const upload = {
   reviewImages: multer({
     storage: reviewImageStorage,
     limits: {
-      fileSize: 3 * 1024 * 1024 // 3MB limit for review images
+      fileSize: 5 * 1024 * 1024 // 5MB limit for review images
     },
     fileFilter: (req, file, cb) => {
       if (file.mimetype.startsWith('image/')) {
