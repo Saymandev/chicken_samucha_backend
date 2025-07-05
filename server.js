@@ -89,7 +89,7 @@ app.use(hpp());
 
 // Enable CORS
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'https://chicken-samucha-frontend.vercel.app',
+  origin: process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app',
   credentials: true
 }));
 
