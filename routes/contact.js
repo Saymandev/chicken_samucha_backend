@@ -22,7 +22,7 @@ const faqs = [
     id: 3,
     category: 'delivery',
     question: 'What are your delivery areas?',
-    answer: 'We deliver across Dhaka city including Gulshan, Banani, Dhanmondi, Mirpur, Uttara, and surrounding areas.',
+    answer: 'We deliver across Rangpur city including Rangpur, Dinajpur, Panchagarh, Thakurgaon, and surrounding areas.',
     isActive: true
   },
   {
