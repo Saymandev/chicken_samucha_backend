@@ -13,6 +13,7 @@ const messageValidation = [
 
 // Public/User routes with optional auth
 router.post('/session', optionalAuth, chatController.startChatSession);
+router.put('/session/:chatId', optionalAuth, chatController.updateChatSession);
 router.get('/:chatId/messages', chatController.getChatMessages);
 router.post('/message', optionalAuth, upload.chatAttachment.single('attachment'), chatController.sendMessage);
 

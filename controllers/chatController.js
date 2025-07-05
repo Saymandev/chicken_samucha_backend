@@ -8,10 +8,22 @@ const startChatSession = async (req, res) => {
 
     const { customerInfo, category = 'general' } = req.body;
 
-    if (!customerInfo || !customerInfo.name) {
+    if (!customerInfo) {
       return res.status(400).json({
         success: false,
         message: 'Customer information is required'
+      });
+    }
+
+    // Handle anonymous users
+    if (customerInfo.isAnonymous) {
+      customerInfo.name = 'Anonymous User';
+      customerInfo.email = '';
+      customerInfo.phone = '';
+    } else if (!customerInfo.name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer name is required'
       });
     }
 
@@ -32,8 +44,11 @@ const startChatSession = async (req, res) => {
         );
         
       }
+    } else if (customerInfo.isAnonymous) {
+      // For anonymous users, don't clean up by email since they don't have one
+      // Just create a new session each time
     } else if (customerInfo.email) {
-      // For guests, clean up duplicates by email
+      // For guests with email, clean up duplicates by email
       const existingSessions = await ChatSession.find({
         'customer.email': customerInfo.email,
         'customer.isGuest': true,
@@ -60,6 +75,9 @@ const startChatSession = async (req, res) => {
         status: { $in: ['active', 'waiting'] }
       });
       
+    } else if (customerInfo.isAnonymous) {
+      // For anonymous users, don't try to find existing sessions
+      // Always create a new session
     } else if (customerInfo.email) {
       // For guests, try to find by email AND name to be more specific
       session = await ChatSession.findOne({
@@ -89,7 +107,8 @@ const startChatSession = async (req, res) => {
           name: customerInfo.name,
           phone: customerInfo.phone || '',
           email: customerInfo.email || '',
-          isGuest: !req.user
+          isGuest: !req.user,
+          isAnonymous: customerInfo.isAnonymous || false
         },
         category,
         status: 'waiting'
@@ -188,6 +207,63 @@ const getChatSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Get chat session error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Update chat session (for anonymous users to provide details)
+const updateChatSession = async (req, res) => {
+  try {
+    const { customerInfo } = req.body;
+    const { chatId } = req.params;
+
+    if (!customerInfo || !customerInfo.name || !customerInfo.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name and email are required'
+      });
+    }
+
+    const session = await ChatSession.findOne({ chatId });
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat session not found'
+      });
+    }
+
+    // Update customer information
+    session.customer.name = customerInfo.name;
+    session.customer.email = customerInfo.email;
+    session.customer.phone = customerInfo.phone || '';
+    session.customer.isAnonymous = false;
+
+    await session.save();
+
+    res.json({
+      success: true,
+      message: 'Chat session updated successfully',
+      data: {
+        chatSession: {
+          id: session.chatId,
+          chatId: session.chatId,
+          status: session.status,
+          category: session.category,
+          customer: session.customer,
+          createdAt: session.createdAt,
+          isActive: session.status === 'active' || session.status === 'waiting',
+          adminAssigned: session.assignedAdmin ? {
+            id: session.assignedAdmin,
+            name: 'Support Team'
+          } : null
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Update chat session error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -720,6 +796,7 @@ const cleanupDuplicateSessions = async (req, res) => {
 module.exports = {
   startChatSession,
   getChatSession,
+  updateChatSession,
   getChatMessages,
   sendMessage,
   getChatSessions,

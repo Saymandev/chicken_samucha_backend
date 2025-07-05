@@ -120,6 +120,10 @@ const chatSessionSchema = new mongoose.Schema({
     isGuest: {
       type: Boolean,
       default: true
+    },
+    isAnonymous: {
+      type: Boolean,
+      default: false
     }
   },
   assignedAdmin: {
