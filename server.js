@@ -102,6 +102,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Handle preflight OPTIONS requests
+app.options('*', cors());
+
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
