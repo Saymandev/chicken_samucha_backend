@@ -54,9 +54,6 @@ const io = socketio(server, {
 // Make io globally accessible for notifications
 global.io = io;
 
-// Make io accessible globally for notifications
-global.io = io;
-
 // Middleware to attach io to requests
 app.use((req, res, next) => {
   req.io = io;
@@ -66,8 +63,6 @@ app.use((req, res, next) => {
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Cookie parser
 app.use(cookieParser());
 
 // Server monitoring middleware
@@ -101,8 +96,10 @@ app.use(hpp());
 
 // Enable CORS
 app.use(cors({
-  origin:  'https://chicken-samucha-frontend.vercel.app',
-  credentials: true
+  origin: 'https://chicken-samucha-frontend.vercel.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Static files
