@@ -1,5 +1,6 @@
 const express = require('express');
 const adminController = require('../controllers/adminController');
+const notificationController = require('../controllers/notificationController');
 const { protect, authorize } = require('../middleware/auth');
 const { body } = require('express-validator');
 const productController = require('../controllers/productController');
@@ -186,5 +187,14 @@ router.put('/settings', adminController.updateSystemSettings);
 
 // Dashboard statistics
 router.get('/dashboard/stats', adminController.getDashboardStats);
+
+// Notification management
+router.get('/notifications', notificationController.getNotifications);
+router.get('/notifications/stats', notificationController.getNotificationStats);
+router.get('/notifications/:id', notificationController.getNotification);
+router.post('/notifications', notificationController.createNotification);
+router.put('/notifications/:id/read', notificationController.markAsRead);
+router.put('/notifications/mark-all-read', notificationController.markAllAsRead);
+router.delete('/notifications/:id', notificationController.deleteNotification);
 
 module.exports = router; 

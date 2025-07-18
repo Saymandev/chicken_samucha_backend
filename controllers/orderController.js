@@ -144,6 +144,19 @@ const createOrder = async (req, res) => {
    
     const order = await Order.create(orderData);
    
+    // Create notification for admin
+    try {
+      const { createOrderNotification } = require('./notificationController');
+      await createOrderNotification({
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        customer: order.customer,
+        paymentMethod: order.paymentInfo.method,
+        totalAmount: order.finalAmount
+      }, 'new_order');
+    } catch (error) {
+      console.error('Error creating order notification:', error);
+    }
 
     // Emit real-time notification to admin
     if (req.io) {
@@ -579,6 +592,27 @@ const updateOrderStatus = async (req, res) => {
       updateData,
       { new: true }
     ).populate('items.product', 'name');
+
+    // Create notification for customer
+    try {
+      const Notification = require('../models/Notification');
+      if (updatedOrder.user) {
+        await Notification.createNotification({
+          type: 'order',
+          title: 'Order Status Updated',
+          message: `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`,
+          priority: 'medium',
+          userId: updatedOrder.user,
+          orderId: updatedOrder._id,
+          metadata: {
+            orderNumber: updatedOrder.orderNumber,
+            newStatus: status
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error creating user notification:', error);
+    }
 
     // Emit real-time update to customer
     if (req.io) {

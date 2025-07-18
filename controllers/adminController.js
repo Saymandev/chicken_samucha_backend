@@ -336,7 +336,19 @@ exports.verifyPayment = async (req, res) => {
     
     await order.save();
 
-    
+    // Create notification for payment verification
+    try {
+      const { createPaymentNotification } = require('./notificationController');
+      await createPaymentNotification({
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        method: order.paymentInfo.method,
+        transactionId: order.paymentInfo.transactionId
+      });
+    } catch (error) {
+      console.error('Error creating payment notification:', error);
+    }
+
     res.json({ success: true, message: 'Payment verified successfully', order });
   } catch (error) {
     console.error('Verify payment error:', error);

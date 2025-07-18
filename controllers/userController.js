@@ -229,6 +229,81 @@ const getUserReviews = async (req, res) => {
   }
 };
 
+// User notifications
+exports.getUserNotifications = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const Notification = require('../models/Notification');
+    
+    const notifications = await Notification.find({ 
+      $or: [
+        { userId: req.user.id },
+        { type: 'system', category: 'user_activity' }
+      ]
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+    
+    const unreadCount = await Notification.countDocuments({ 
+      userId: req.user.id, 
+      read: false 
+    });
+    
+    res.json({
+      success: true,
+      notifications: notifications.map(n => ({
+        id: n._id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        read: n.read,
+        timestamp: n.createdAt
+      })),
+      unreadCount
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.markNotificationAsRead = async (req, res) => {
+  try {
+    const Notification = require('../models/Notification');
+    
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { read: true, readAt: new Date() },
+      { new: true }
+    );
+    
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+    
+    res.json({ success: true, message: 'Notification marked as read' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const Notification = require('../models/Notification');
+    
+    await Notification.updateMany(
+      { userId: req.user.id, read: false },
+      { read: true, readAt: new Date() }
+    );
+    
+    res.json({ success: true, message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,

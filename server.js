@@ -51,6 +51,18 @@ const io = socketio(server, {
   }
 });
 
+// Make io globally accessible for notifications
+global.io = io;
+
+// Make io accessible globally for notifications
+global.io = io;
+
+// Middleware to attach io to requests
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
