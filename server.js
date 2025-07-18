@@ -45,7 +45,11 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketio(server, {
   cors: {
+<<<<<<< HEAD
     origin: "https://chicken-samucha-frontend.vercel.app",
+=======
+    origin: process.env.FRONTEND_URL || "https://chicken-samucha-frontend.vercel.app",
+>>>>>>> d332f69b3b27ae112b88932b474b30421f2ab2a3
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -101,7 +105,11 @@ app.use(hpp());
 
 // Enable CORS
 app.use(cors({
+<<<<<<< HEAD
   origin:  'https://chicken-samucha-frontend.vercel.app',
+=======
+  origin: process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app',
+>>>>>>> d332f69b3b27ae112b88932b474b30421f2ab2a3
   credentials: true
 }));
 

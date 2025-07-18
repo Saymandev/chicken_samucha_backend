@@ -13,7 +13,11 @@ module.exports = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || 'your_cloudinary_api_secret',
   
   // Frontend URL (for CORS)
+<<<<<<< HEAD
   FRONTEND_URL: 'https://chicken-samucha-frontend.vercel.app',
+=======
+  FRONTEND_URL: process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app',
+>>>>>>> d332f69b3b27ae112b88932b474b30421f2ab2a3
   
   // Admin credentials
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@samosa.com',

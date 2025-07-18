@@ -349,6 +349,7 @@ exports.verifyPayment = async (req, res) => {
       console.error('Error creating payment notification:', error);
     }
     
+
     res.json({ success: true, message: 'Payment verified successfully', order });
   } catch (error) {
     console.error('Verify payment error:', error);
