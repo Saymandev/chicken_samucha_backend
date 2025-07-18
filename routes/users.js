@@ -10,19 +10,14 @@ const router = express.Router();
 router.use(protect);
 
 // Get user profile
-router.get('/profile', userController.getUserProfile);
+router.get('/profile', userController.getProfile);
 
 // Update user profile
-router.put('/profile', userController.updateUserProfile);
+router.put('/profile', userController.updateProfile);
 
-// Update user password
-router.put('/password', [
-  body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
-], userController.updateUserPassword);
+// Password update handled by auth routes
 
-// Avatar upload
-router.post('/avatar', upload.single('avatar'), userController.uploadAvatar);
+// Avatar upload handled by auth routes
 
 // User notifications
 router.get('/notifications', userController.getUserNotifications);

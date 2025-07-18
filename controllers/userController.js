@@ -4,7 +4,7 @@ const Review = require('../models/Review');
 const { deleteImage } = require('../middleware/upload');
 
 // Get user profile
-const getProfile = async (req, res) => {
+exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
 
@@ -22,7 +22,7 @@ const getProfile = async (req, res) => {
 };
 
 // Update user profile
-const updateProfile = async (req, res) => {
+exports.updateProfile = async (req, res) => {
   try {
     const { name, phone, address, preferredLanguage, preferredTheme } = req.body;
 
@@ -64,7 +64,7 @@ const updateProfile = async (req, res) => {
 };
 
 // Upload avatar
-const uploadAvatar = async (req, res) => {
+exports.uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -107,7 +107,7 @@ const uploadAvatar = async (req, res) => {
 };
 
 // Delete avatar
-const deleteAvatar = async (req, res) => {
+exports.deleteAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
@@ -136,7 +136,7 @@ const deleteAvatar = async (req, res) => {
 };
 
 // Get user orders
-const getUserOrders = async (req, res) => {
+exports.getUserOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
 
@@ -171,7 +171,7 @@ const getUserOrders = async (req, res) => {
 };
 
 // Get single user order
-const getUserOrder = async (req, res) => {
+exports.getUserOrder = async (req, res) => {
   try {
     const order = await Order.findOne({
       _id: req.params.id,
@@ -199,7 +199,7 @@ const getUserOrder = async (req, res) => {
 };
 
 // Get user reviews
-const getUserReviews = async (req, res) => {
+exports.getUserReviews = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
@@ -304,12 +304,4 @@ exports.markAllNotificationsAsRead = async (req, res) => {
   }
 };
 
-module.exports = {
-  getProfile,
-  updateProfile,
-  uploadAvatar,
-  deleteAvatar,
-  getUserOrders,
-  getUserOrder,
-  getUserReviews
-}; 
+// All functions are exported using exports.functionName above 
