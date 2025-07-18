@@ -98,6 +98,7 @@ notificationSchema.statics.createNotification = async function(data) {
     
     // Emit real-time notification via Socket.IO
     if (global.io) {
+      // For admin notifications
       global.io.to('admin-dashboard').emit('new-notification', {
         id: notification._id,
         type: notification.type,
@@ -106,6 +107,18 @@ notificationSchema.statics.createNotification = async function(data) {
         priority: notification.priority,
         createdAt: notification.createdAt
       });
+      
+      // For user notifications - emit to user-specific room
+      if (notification.userId) {
+        global.io.to(`user-${notification.userId}`).emit('new-user-notification', {
+          id: notification._id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          read: notification.read,
+          timestamp: notification.createdAt
+        });
+      }
     }
     
     return notification;

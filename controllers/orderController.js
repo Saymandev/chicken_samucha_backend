@@ -158,6 +158,27 @@ const createOrder = async (req, res) => {
       console.error('Error creating order notification:', error);
     }
 
+    // Create notification for user if logged in
+    try {
+      const Notification = require('../models/Notification');
+      if (order.user) {
+        await Notification.createNotification({
+          type: 'order',
+          title: 'Order Placed Successfully',
+          message: `Your order ${order.orderNumber} has been placed and is being processed`,
+          priority: 'medium',
+          userId: order.user,
+          orderId: order._id,
+          metadata: {
+            orderNumber: order.orderNumber,
+            totalAmount: order.finalAmount
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error creating user order notification:', error);
+    }
+
     // Emit real-time notification to admin
     if (req.io) {
       req.io.emit('new-order', {
@@ -609,15 +630,27 @@ const updateOrderStatus = async (req, res) => {
             newStatus: status
           }
         });
+        
+        // Emit real-time notification to user-specific room
+        if (req.io) {
+          req.io.to(`user-${updatedOrder.user}`).emit('new-user-notification', {
+            id: `order-${Date.now()}`,
+            type: 'order',
+            title: 'Order Status Updated',
+            message: `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`,
+            read: false,
+            timestamp: new Date()
+          });
+        }
       }
     } catch (error) {
       console.error('Error creating user notification:', error);
     }
 
-    // Emit real-time update to customer
+    // Emit real-time update to customer (legacy - keeping for backward compatibility)
     if (req.io) {
-      req.io.to(`order-${order.orderNumber}`).emit('order-status-updated', {
-        orderNumber: order.orderNumber,
+      req.io.to(`order-${updatedOrder.orderNumber}`).emit('order-status-updated', {
+        orderNumber: updatedOrder.orderNumber,
         newStatus: status,
         estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime
       });

@@ -45,11 +45,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketio(server, {
   cors: {
-<<<<<<< HEAD
     origin: "https://chicken-samucha-frontend.vercel.app",
-=======
-    origin: process.env.FRONTEND_URL || "https://chicken-samucha-frontend.vercel.app",
->>>>>>> d332f69b3b27ae112b88932b474b30421f2ab2a3
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -105,11 +101,7 @@ app.use(hpp());
 
 // Enable CORS
 app.use(cors({
-<<<<<<< HEAD
   origin:  'https://chicken-samucha-frontend.vercel.app',
-=======
-  origin: process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app',
->>>>>>> d332f69b3b27ae112b88932b474b30421f2ab2a3
   credentials: true
 }));
 
@@ -212,6 +204,12 @@ io.on('connection', (socket) => {
     socket.to('admin-dashboard').emit('user-joined-chat', { chatId, socketId: socket.id });
   });
 
+  // User joins their personal notification room
+  socket.on('join-user-room', (userId) => {
+    console.log(`👤 User ${userId} joined notification room`);
+    socket.join(`user-${userId}`);
+  });
+
   // Admin joins the admin dashboard
   socket.on('join-admin-dashboard', () => {
    
@@ -281,9 +279,9 @@ io.on('connection', (socket) => {
     io.to('admin-dashboard').emit('chat-session-updated', data);
   });
 
-  // Handle disconnection
+  // Handle disconnect
   socket.on('disconnect', () => {
-    
+    console.log('🔌 User disconnected from socket');
   });
 });
 
