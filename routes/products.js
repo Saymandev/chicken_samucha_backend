@@ -10,6 +10,8 @@ const router = express.Router();
 router.get('/', productController.getProducts);
 router.get('/featured', productController.getFeaturedProducts);
 router.get('/:id', productController.getProduct);
+router.get('/:id/related', productController.getRelatedProducts);
+router.post('/:productId/track-cart', productController.trackAddToCart);
 
 // Protected admin routes
 router.post('/', 
@@ -38,5 +40,10 @@ router.delete('/:id', protect, authorize('admin'), productController.deleteProdu
 // Bulk operations
 router.put('/bulk/update-visibility', protect, authorize('admin'), productController.bulkUpdateVisibility);
 router.put('/bulk/update-availability', protect, authorize('admin'), productController.bulkUpdateAvailability);
+
+// Analytics routes (Admin only)
+router.get('/analytics/all', protect, authorize('admin'), productController.getAllProductsAnalytics);
+router.get('/:id/analytics', protect, authorize('admin'), productController.getProductAnalytics);
+router.post('/track-purchase', protect, productController.trackPurchase);
 
 module.exports = router; 

@@ -134,6 +134,24 @@ const productSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  // Analytics tracking
+  analytics: {
+    viewCount: {
+      type: Number,
+      default: 0
+    },
+    addToCartCount: {
+      type: Number,
+      default: 0
+    },
+    purchaseCount: {
+      type: Number,
+      default: 0
+    },
+    lastViewed: {
+      type: Date
+    }
   }
 }, {
   timestamps: true

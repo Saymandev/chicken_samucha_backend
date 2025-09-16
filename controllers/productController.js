@@ -135,6 +135,12 @@ const getProduct = async (req, res) => {
       });
     }
 
+    // Track product view
+    await Product.findByIdAndUpdate(req.params.id, {
+      $inc: { 'analytics.viewCount': 1 },
+      $set: { 'analytics.lastViewed': new Date() }
+    });
+
     res.json({
       success: true,
       product
@@ -410,6 +416,149 @@ const bulkUpdateAvailability = async (req, res) => {
   }
 };
 
+// Track add to cart
+const trackAddToCart = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    
+    await Product.findByIdAndUpdate(productId, {
+      $inc: { 'analytics.addToCartCount': 1 }
+    });
+
+    res.json({
+      success: true,
+      message: 'Add to cart tracked'
+    });
+  } catch (error) {
+    console.error('Track add to cart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Track purchase
+const trackPurchase = async (req, res) => {
+  try {
+    const { productId, quantity = 1 } = req.body;
+    
+    await Product.findByIdAndUpdate(productId, {
+      $inc: { 'analytics.purchaseCount': quantity }
+    });
+
+    res.json({
+      success: true,
+      message: 'Purchase tracked'
+    });
+  } catch (error) {
+    console.error('Track purchase error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Get product analytics (Admin only)
+const getProductAnalytics = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    
+    const product = await Product.findById(productId).select('analytics name');
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      analytics: product.analytics,
+      productName: product.name
+    });
+  } catch (error) {
+    console.error('Get product analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Get all products analytics (Admin only)
+const getAllProductsAnalytics = async (req, res) => {
+  try {
+    const { sortBy = 'viewCount', sortOrder = 'desc', limit = 50 } = req.query;
+    
+    const sortOptions = {};
+    sortOptions[`analytics.${sortBy}`] = sortOrder === 'desc' ? -1 : 1;
+    
+    const products = await Product.find({})
+      .select('name analytics ratings')
+      .sort(sortOptions)
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      count: products.length,
+      products: products.map(product => ({
+        id: product._id,
+        name: product.name,
+        analytics: product.analytics,
+        ratings: product.ratings
+      }))
+    });
+  } catch (error) {
+    console.error('Get all products analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Get related products
+const getRelatedProducts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 4 } = req.query;
+    
+    const product = await Product.findById(id).select('category');
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    const relatedProducts = await Product.find({
+      _id: { $ne: id },
+      isVisible: true,
+      isAvailable: true,
+      'category.en': product.category.en
+    })
+    .sort({ 'analytics.viewCount': -1 })
+    .limit(parseInt(limit))
+    .select('name price discountPrice images ratings analytics');
+
+    res.json({
+      success: true,
+      count: relatedProducts.length,
+      products: relatedProducts
+    });
+  } catch (error) {
+    console.error('Get related products error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getFeaturedProducts,
@@ -418,5 +567,10 @@ module.exports = {
   updateProduct,
   deleteProduct,
   bulkUpdateVisibility,
-  bulkUpdateAvailability
+  bulkUpdateAvailability,
+  trackAddToCart,
+  trackPurchase,
+  getProductAnalytics,
+  getAllProductsAnalytics,
+  getRelatedProducts
 }; 
