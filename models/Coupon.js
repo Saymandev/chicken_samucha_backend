@@ -106,7 +106,7 @@ couponSchema.methods.isValid = function() {
   return this.isActive && 
          this.validFrom <= now && 
          this.validUntil >= now &&
-         (this.usageLimit === null || this.usedCount < this.usageLimit);
+         (this.usageLimit === null || this.usageLimit === 0 || this.usedCount < this.usageLimit);
 };
 
 // Method to check if coupon is applicable to order
