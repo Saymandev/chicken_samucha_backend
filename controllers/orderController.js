@@ -175,6 +175,44 @@ const createOrder = async (req, res) => {
           }
         });
       }
+
+      // Send order confirmation email
+      try {
+        const emailService = require('../services/emailService');
+        const User = require('../models/User');
+        
+        // Get user email if user is logged in
+        if (order.user) {
+          const user = await User.findById(order.user).select('email name');
+          if (user && user.email) {
+            await emailService.sendOrderConfirmation(
+              user.email, 
+              {
+                orderNumber: order.orderNumber,
+                totalAmount: order.finalAmount,
+                status: order.orderStatus,
+                items: order.items,
+                estimatedDeliveryTime: order.estimatedDeliveryTime
+              }
+            );
+          }
+        } else if (order.customer && order.customer.email) {
+          // For guest orders, use customer email
+          await emailService.sendOrderConfirmation(
+            order.customer.email,
+            {
+              orderNumber: order.orderNumber,
+              totalAmount: order.finalAmount,
+              status: order.orderStatus,
+              items: order.items,
+              estimatedDeliveryTime: order.estimatedDeliveryTime
+            }
+          );
+        }
+      } catch (emailError) {
+        console.error('Error sending order confirmation email:', emailError);
+        // Don't fail the request if email fails
+      }
     } catch (error) {
       console.error('Error creating user order notification:', error);
     }
@@ -642,6 +680,46 @@ const updateOrderStatus = async (req, res) => {
             timestamp: new Date()
           });
         }
+      }
+
+      // Send email notification for order status update
+      try {
+        const emailService = require('../services/emailService');
+        const User = require('../models/User');
+        
+        // Get user email if user is logged in
+        if (updatedOrder.user) {
+          const user = await User.findById(updatedOrder.user).select('email name');
+          if (user && user.email) {
+            await emailService.sendOrderStatusUpdateEmail(
+              user.email, 
+              user.name, 
+              {
+                orderNumber: updatedOrder.orderNumber,
+                status: status,
+                estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime,
+                items: updatedOrder.items,
+                totalAmount: updatedOrder.finalAmount
+              }
+            );
+          }
+        } else if (updatedOrder.customer && updatedOrder.customer.email) {
+          // For guest orders, use customer email
+          await emailService.sendOrderStatusUpdateEmail(
+            updatedOrder.customer.email,
+            updatedOrder.customer.name,
+            {
+              orderNumber: updatedOrder.orderNumber,
+              status: status,
+              estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime,
+              items: updatedOrder.items,
+              totalAmount: updatedOrder.finalAmount
+            }
+          );
+        }
+      } catch (emailError) {
+        console.error('Error sending order status update email:', emailError);
+        // Don't fail the request if email fails
       }
     } catch (error) {
       console.error('Error creating user notification:', error);

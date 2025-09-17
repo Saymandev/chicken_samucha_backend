@@ -173,22 +173,62 @@ class EmailService {
         
         return { messageId: 'dev-mode-no-email' };
       }
+
+      // Generate items list HTML
+      const itemsHtml = orderDetails.items.map(item => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">৳${item.price}</td>
+        </tr>
+      `).join('');
       
       const mailOptions = {
         from: `"Your Business" <${process.env.GMAIL_USER}>`,
         to: to,
         subject: `Order Confirmation - ${orderDetails.orderNumber}`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Order Confirmed!</h2>
-            <p>Your order has been received and is being processed.</p>
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-              <h3>Order Details:</h3>
-              <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
-              <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
-              <p><strong>Status:</strong> ${orderDetails.status}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
+            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; margin-bottom: 20px;">Order Confirmed! 🎉</h2>
+              <p>Thank you for your order! We've received it and it's being processed.</p>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
+                <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
+                <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
+                <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
+                <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">${orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span></p>
+                ${orderDetails.estimatedDeliveryTime ? `<p><strong>Estimated Delivery:</strong> ${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>` : ''}
+              </div>
+
+              <div style="margin: 20px 0;">
+                <h4 style="color: #333;">Order Items:</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                  <thead>
+                    <tr style="background-color: #f8f9fa;">
+                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Item</th>
+                      <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Quantity</th>
+                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0; color: #2d5a2d;">
+                  <strong>What's Next?</strong><br>
+                  We'll notify you via email and in-app notifications when your order status changes. 
+                  You can track your order progress in real-time!
+                </p>
+              </div>
+
+              <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                Thank you for choosing us! If you have any questions, please don't hesitate to contact us.
+              </p>
             </div>
-            <p>We'll notify you when your order is ready for delivery.</p>
           </div>
         `,
       };
@@ -200,6 +240,105 @@ class EmailService {
       console.error('⚠️  Error sending order confirmation email:', error.message);
       return { error: error.message }; // Return error object instead of throwing
     }
+  }
+
+  async sendOrderStatusUpdateEmail(to, customerName, orderDetails) {
+    try {
+      const transporter = await this.createTransporter();
+      
+      // If no transporter (OAuth not configured), log instead of sending
+      if (!transporter) {
+        console.log('=== ORDER STATUS UPDATE EMAIL WOULD BE SENT ===');
+        console.log('To:', to);
+        console.log('Order:', orderDetails.orderNumber);
+        console.log('Status:', orderDetails.status);
+        console.log('===============================================');
+        
+        return { messageId: 'dev-mode-no-email' };
+      }
+
+      // Format status for display
+      const statusDisplay = orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      // Generate items list HTML
+      const itemsHtml = orderDetails.items.map(item => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">৳${item.price}</td>
+        </tr>
+      `).join('');
+
+      const mailOptions = {
+        from: `"Your Business" <${process.env.GMAIL_USER}>`,
+        to: to,
+        subject: `Order Status Update - ${orderDetails.orderNumber}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
+            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; margin-bottom: 20px;">Order Status Update</h2>
+              <p>Hello ${customerName},</p>
+              <p>Your order status has been updated:</p>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #007bff;">
+                <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
+                <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
+                <p><strong>New Status:</strong> <span style="color: #007bff; font-weight: bold;">${statusDisplay}</span></p>
+                <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
+                ${orderDetails.estimatedDeliveryTime ? `<p><strong>Estimated Delivery:</strong> ${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>` : ''}
+              </div>
+
+              <div style="margin: 20px 0;">
+                <h4 style="color: #333;">Order Items:</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                  <thead>
+                    <tr style="background-color: #f8f9fa;">
+                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Item</th>
+                      <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Quantity</th>
+                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0; color: #2d5a2d;">
+                  <strong>What's Next?</strong><br>
+                  ${this.getStatusMessage(orderDetails.status)}
+                </p>
+              </div>
+
+              <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                Thank you for choosing us! If you have any questions, please don't hesitate to contact us.
+              </p>
+            </div>
+          </div>
+        `,
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Order status update email sent:', result);
+      return result;
+    } catch (error) {
+      console.error('⚠️  Error sending order status update email:', error.message);
+      return { error: error.message };
+    }
+  }
+
+  getStatusMessage(status) {
+    const statusMessages = {
+      'pending': 'Your order is being reviewed and will be confirmed shortly.',
+      'confirmed': 'Your order has been confirmed and is being prepared.',
+      'preparing': 'Your order is being prepared with fresh ingredients.',
+      'ready': 'Your order is ready for pickup or delivery.',
+      'out_for_delivery': 'Your order is on its way to you!',
+      'delivered': 'Your order has been delivered. Enjoy your meal!',
+      'cancelled': 'Your order has been cancelled. If you have any questions, please contact us.'
+    };
+    return statusMessages[status] || 'Your order status has been updated.';
   }
 }
 
