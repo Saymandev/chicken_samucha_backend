@@ -13,15 +13,15 @@ class EmailReportService {
 
   async initializeTransporter() {
     try {
-      // Method 1: Using OAuth2 (Recommended for production)
-      if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
-        await this.setupOAuth2();
-        console.log('Email service initialized with OAuth2');
-      }
-      // Method 2: Using App Password (Easier for development)
-      else if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
+      // Method 1: Using App Password (Easier and more reliable)
+      if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
         await this.setupAppPassword();
         console.log('Email service initialized with App Password');
+      }
+      // Method 2: Using OAuth2 (More complex but more secure)
+      else if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
+        await this.setupOAuth2();
+        console.log('Email service initialized with OAuth2');
       }
       // Method 3: Using Service Account
       else if (fs.existsSync(path.join(__dirname, '../google-credentials.json'))) {
