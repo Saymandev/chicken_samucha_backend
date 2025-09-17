@@ -190,20 +190,39 @@ class SchedulerService {
 
   // Get scheduler status
   getStatus() {
-    const status = {
-      isRunning: this.isRunning,
-      jobs: {}
-    };
-
-    this.jobs.forEach((job, name) => {
-      status.jobs[name] = {
-        running: job.running,
-        nextDate: job.nextDate(),
-        lastDate: job.lastDate()
+    try {
+      const status = {
+        isRunning: this.isRunning,
+        jobs: {}
       };
-    });
 
-    return status;
+      this.jobs.forEach((job, name) => {
+        try {
+          status.jobs[name] = {
+            running: job.running || false,
+            // node-cron doesn't have nextDate/lastDate methods
+            // We'll just show if the job is running
+            status: job.running ? 'active' : 'inactive'
+          };
+        } catch (jobError) {
+          console.error(`Error getting status for job ${name}:`, jobError);
+          status.jobs[name] = {
+            running: false,
+            status: 'error',
+            error: jobError.message
+          };
+        }
+      });
+
+      return status;
+    } catch (error) {
+      console.error('Error getting scheduler status:', error);
+      return {
+        isRunning: false,
+        jobs: {},
+        error: error.message
+      };
+    }
   }
 
   // Update schedule times
