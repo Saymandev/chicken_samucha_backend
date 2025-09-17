@@ -322,4 +322,10 @@ server.listen(PORT, () => {
   
   // Start server monitoring
   serverMonitor.startMonitoring();
+  
+  // Start automated report scheduler
+  const schedulerService = require('./services/schedulerService');
+  schedulerService.start().catch(err => {
+    console.error('Failed to start scheduler:', err);
+  });
 }); 

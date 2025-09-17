@@ -160,16 +160,22 @@ const updateCoupon = async (req, res) => {
 // Delete coupon (Admin only)
 const deleteCoupon = async (req, res) => {
   try {
+    console.log('Delete coupon request for ID:', req.params.id);
+    console.log('User making request:', req.user ? { id: req.user._id, role: req.user.role } : 'No user');
+    
     const coupon = await Coupon.findById(req.params.id);
 
     if (!coupon) {
+      console.log('Coupon not found:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Coupon not found'
       });
     }
 
+    console.log('Found coupon:', coupon.code);
     await Coupon.findByIdAndDelete(req.params.id);
+    console.log('Coupon deleted successfully');
 
     res.json({
       success: true,
@@ -177,9 +183,15 @@ const deleteCoupon = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete coupon error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

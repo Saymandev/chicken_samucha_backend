@@ -624,46 +624,865 @@ exports.getUser = async (req, res) => {
 // Get system settings
 exports.getSystemSettings = async (req, res) => {
   try {
-    const settings = {
-      general: {
-        siteName: 'Chicken Samosa Business',
-        currency: 'BDT',
-        deliveryCharge: 60,
-        taxRate: 0,
-        minOrderAmount: 50
-      },
-      notifications: {
-        emailNotifications: true,
-        smsNotifications: false,
-        orderNotifications: true,
-        reviewNotifications: true
-      },
-      payment: {
-        bkashEnabled: true,
-        nagadEnabled: true,
-        rocketEnabled: true,
-        upayEnabled: true,
-        cashOnDeliveryEnabled: true
-      }
-    };
+    const Settings = require('../models/Settings');
+    const { category } = req.query;
 
-    res.json({ success: true, settings });
+    let settings;
+
+    if (category) {
+      // Get specific category settings
+      switch (category) {
+        case 'payment':
+          settings = await Settings.getPaymentSettings();
+          break;
+        case 'general':
+          settings = await Settings.getByCategory('general');
+          break;
+        case 'notification':
+          settings = await Settings.getByCategory('notification');
+          break;
+        case 'delivery':
+          settings = await Settings.getByCategory('delivery');
+          break;
+        case 'security':
+          settings = await Settings.getByCategory('security');
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid category. Valid categories: payment, general, notification, delivery, security'
+          });
+      }
+    } else {
+      // Get all settings
+      const [general, notification, delivery, security, payment] = await Promise.all([
+        Settings.getByCategory('general'),
+        Settings.getByCategory('notification'),
+        Settings.getByCategory('delivery'),
+        Settings.getByCategory('security'),
+        Settings.getPaymentSettings()
+      ]);
+
+      settings = {
+        general: {
+          siteName: general.siteName || 'Chicken Samosa Business',
+          currency: general.currency || 'BDT',
+          deliveryCharge: general.deliveryCharge || 60,
+          taxRate: general.taxRate || 0,
+          minOrderAmount: general.minOrderAmount || 50,
+          maxOrderAmount: general.maxOrderAmount || 10000,
+          businessHours: general.businessHours || '9:00 AM - 10:00 PM',
+          timezone: general.timezone || 'Asia/Dhaka',
+          ...general
+        },
+        notification: {
+          emailNotifications: notification.emailNotifications !== false,
+          smsNotifications: notification.smsNotifications || false,
+          orderNotifications: notification.orderNotifications !== false,
+          reviewNotifications: notification.reviewNotifications !== false,
+          marketingEmails: notification.marketingEmails || false,
+          ...notification
+        },
+        delivery: {
+          deliveryRadius: delivery.deliveryRadius || 10,
+          deliveryTime: delivery.deliveryTime || '30-45 minutes',
+          freeDeliveryThreshold: delivery.freeDeliveryThreshold || 500,
+          deliveryAreas: delivery.deliveryAreas || [],
+          ...delivery
+        },
+        security: {
+          requireEmailVerification: security.requireEmailVerification !== false,
+          requirePhoneVerification: security.requirePhoneVerification || false,
+          maxLoginAttempts: security.maxLoginAttempts || 5,
+          sessionTimeout: security.sessionTimeout || 24,
+          ...security
+        },
+        payment
+      };
+    }
+
+    res.json({ 
+      success: true, 
+      settings,
+      category: category || 'all',
+      lastUpdated: new Date()
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch system settings' });
+    console.error('Get system settings error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch system settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
 // Update system settings
 exports.updateSystemSettings = async (req, res) => {
   try {
-    // In a real application, you would save these to a database
-    // For now, just return success
+    const Settings = require('../models/Settings');
+    const { settings, category } = req.body;
+    const userId = req.user.id;
+
+    if (!settings || typeof settings !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Settings object is required'
+      });
+    }
+
+    let result;
+
+    // Handle different categories of settings
+    switch (category) {
+      case 'payment':
+        result = await Settings.savePaymentSettings(settings, userId);
+        break;
+      
+      case 'general':
+        // Handle general settings
+        const generalUpdates = Object.entries(settings).map(([key, value]) => 
+          Settings.setSetting('general', key, value, userId)
+        );
+        await Promise.all(generalUpdates);
+        result = await Settings.getByCategory('general');
+        break;
+      
+      case 'notification':
+        // Handle notification settings
+        const notificationUpdates = Object.entries(settings).map(([key, value]) => 
+          Settings.setSetting('notification', key, value, userId)
+        );
+        await Promise.all(notificationUpdates);
+        result = await Settings.getByCategory('notification');
+        break;
+      
+      case 'delivery':
+        // Handle delivery settings
+        const deliveryUpdates = Object.entries(settings).map(([key, value]) => 
+          Settings.setSetting('delivery', key, value, userId)
+        );
+        await Promise.all(deliveryUpdates);
+        result = await Settings.getByCategory('delivery');
+        break;
+      
+      case 'security':
+        // Handle security settings
+        const securityUpdates = Object.entries(settings).map(([key, value]) => 
+          Settings.setSetting('security', key, value, userId)
+        );
+        await Promise.all(securityUpdates);
+        result = await Settings.getByCategory('security');
+        break;
+      
+      default:
+        // Handle bulk settings update (all categories)
+        const allUpdates = [];
+        Object.entries(settings).forEach(([settingCategory, settingValues]) => {
+          if (typeof settingValues === 'object' && settingValues !== null) {
+            Object.entries(settingValues).forEach(([key, value]) => {
+              allUpdates.push(
+                Settings.setSetting(settingCategory, key, value, userId)
+              );
+            });
+          }
+        });
+        await Promise.all(allUpdates);
+        result = settings;
+    }
+
     res.json({
       success: true,
       message: 'Settings updated successfully',
-      settings: req.body
+      settings: result,
+      category: category || 'all',
+      updatedBy: userId,
+      updatedAt: new Date()
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to update system settings' });
+    console.error('Update system settings error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update system settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Get settings by category
+exports.getSettingsByCategory = async (req, res) => {
+  try {
+    const Settings = require('../models/Settings');
+    const { category } = req.params;
+
+    if (!['payment', 'general', 'notification', 'delivery', 'security'].includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category. Valid categories: payment, general, notification, delivery, security'
+      });
+    }
+
+    let settings;
+    if (category === 'payment') {
+      settings = await Settings.getPaymentSettings();
+    } else {
+      settings = await Settings.getByCategory(category);
+    }
+
+    res.json({
+      success: true,
+      settings,
+      category
+    });
+  } catch (error) {
+    console.error('Get settings by category error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Reset settings to defaults
+exports.resetSettingsToDefaults = async (req, res) => {
+  try {
+    const Settings = require('../models/Settings');
+    const { category } = req.body;
+    const userId = req.user.id;
+
+    const defaultSettings = {
+      general: {
+        siteName: 'Chicken Samosa Business',
+        currency: 'BDT',
+        deliveryCharge: 60,
+        taxRate: 0,
+        minOrderAmount: 50,
+        maxOrderAmount: 10000,
+        businessHours: '9:00 AM - 10:00 PM',
+        timezone: 'Asia/Dhaka'
+      },
+      notification: {
+        emailNotifications: true,
+        smsNotifications: false,
+        orderNotifications: true,
+        reviewNotifications: true,
+        marketingEmails: false
+      },
+      delivery: {
+        deliveryRadius: 10,
+        deliveryTime: '30-45 minutes',
+        freeDeliveryThreshold: 500,
+        deliveryAreas: []
+      },
+      security: {
+        requireEmailVerification: true,
+        requirePhoneVerification: false,
+        maxLoginAttempts: 5,
+        sessionTimeout: 24
+      },
+      payment: {
+        bkash: { enabled: false, merchantNumber: '', apiKey: '' },
+        nagad: { enabled: false, merchantNumber: '', apiKey: '' },
+        rocket: { enabled: false, merchantNumber: '', apiKey: '' },
+        upay: { enabled: false, merchantNumber: '', apiKey: '' },
+        cashOnDelivery: { enabled: true, deliveryCharge: 60 }
+      }
+    };
+
+    if (category && defaultSettings[category]) {
+      // Reset specific category
+      if (category === 'payment') {
+        await Settings.savePaymentSettings(defaultSettings.payment, userId);
+      } else {
+        const updates = Object.entries(defaultSettings[category]).map(([key, value]) =>
+          Settings.setSetting(category, key, value, userId)
+        );
+        await Promise.all(updates);
+      }
+    } else {
+      // Reset all settings
+      const allUpdates = [];
+      Object.entries(defaultSettings).forEach(([settingCategory, settingValues]) => {
+        if (settingCategory === 'payment') {
+          allUpdates.push(Settings.savePaymentSettings(settingValues, userId));
+        } else {
+          Object.entries(settingValues).forEach(([key, value]) => {
+            allUpdates.push(
+              Settings.setSetting(settingCategory, key, value, userId)
+            );
+          });
+        }
+      });
+      await Promise.all(allUpdates);
+    }
+
+    res.json({
+      success: true,
+      message: `Settings ${category ? `for ${category}` : ''} reset to defaults successfully`,
+      category: category || 'all',
+      resetBy: userId,
+      resetAt: new Date()
+    });
+  } catch (error) {
+    console.error('Reset settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset settings',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// ==================== REPORTS & ANALYTICS ====================
+
+// Get comprehensive sales analytics
+exports.getSalesAnalytics = async (req, res) => {
+  try {
+    const { period = '30d', startDate, endDate } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      };
+    } else {
+      // Default period filters
+      switch (period) {
+        case '7d':
+          dateFilter = {
+            createdAt: { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) }
+          };
+          break;
+        case '30d':
+          dateFilter = {
+            createdAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) }
+          };
+          break;
+        case '90d':
+          dateFilter = {
+            createdAt: { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) }
+          };
+          break;
+        case '1y':
+          dateFilter = {
+            createdAt: { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) }
+          };
+          break;
+      }
+    }
+
+    // Revenue analytics
+    const revenueData = await Order.aggregate([
+      { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$finalAmount' },
+          totalOrders: { $sum: 1 },
+          averageOrderValue: { $avg: '$finalAmount' },
+          totalDeliveryCharge: { $sum: '$deliveryCharge' }
+        }
+      }
+    ]);
+
+    // Daily sales trend
+    const dailySales = await Order.aggregate([
+      { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' }
+          },
+          revenue: { $sum: '$finalAmount' },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+    ]);
+
+    // Product performance
+    const productPerformance = await Order.aggregate([
+      { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          totalQuantity: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } },
+      { $unwind: '$product' },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Payment method analytics
+    const paymentMethods = await Order.aggregate([
+      { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: '$paymentInfo.method',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$finalAmount' }
+        }
+      },
+      { $sort: { totalAmount: -1 } }
+    ]);
+
+    // Order status distribution
+    const orderStatusDistribution = await Order.aggregate([
+      { $match: dateFilter },
+      {
+        $group: {
+          _id: '$orderStatus',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$finalAmount' }
+        }
+      }
+    ]);
+
+    // Customer analytics
+    const customerAnalytics = await Order.aggregate([
+      { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: '$customer.email',
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: '$finalAmount' },
+          lastOrder: { $max: '$createdAt' }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalCustomers: { $sum: 1 },
+          repeatCustomers: { $sum: { $cond: [{ $gt: ['$totalOrders', 1] }, 1, 0] } },
+          averageOrdersPerCustomer: { $avg: '$totalOrders' },
+          averageCustomerValue: { $avg: '$totalSpent' }
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        revenue: revenueData[0] || { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0, totalDeliveryCharge: 0 },
+        dailySales,
+        productPerformance,
+        paymentMethods,
+        orderStatusDistribution,
+        customerAnalytics: customerAnalytics[0] || { totalCustomers: 0, repeatCustomers: 0, averageOrdersPerCustomer: 0, averageCustomerValue: 0 }
+      }
+    });
+  } catch (error) {
+    console.error('Sales analytics error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch sales analytics' });
+  }
+};
+
+// Get real-time dashboard metrics
+exports.getDashboardMetrics = async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Today's metrics
+    const todayMetrics = await Order.aggregate([
+      { $match: { createdAt: { $gte: today }, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$finalAmount' },
+          orders: { $sum: 1 },
+          averageOrderValue: { $avg: '$finalAmount' }
+        }
+      }
+    ]);
+
+    // Yesterday's metrics for comparison
+    const yesterdayMetrics = await Order.aggregate([
+      { $match: { createdAt: { $gte: yesterday, $lt: today }, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$finalAmount' },
+          orders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // This week's metrics
+    const weekMetrics = await Order.aggregate([
+      { $match: { createdAt: { $gte: thisWeek }, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$finalAmount' },
+          orders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // This month's metrics
+    const monthMetrics = await Order.aggregate([
+      { $match: { createdAt: { $gte: thisMonth }, orderStatus: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$finalAmount' },
+          orders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Pending orders count
+    const pendingOrders = await Order.countDocuments({ orderStatus: 'pending' });
+    const processingOrders = await Order.countDocuments({ orderStatus: 'preparing' });
+    const readyOrders = await Order.countDocuments({ orderStatus: 'ready' });
+    const outForDeliveryOrders = await Order.countDocuments({ orderStatus: 'out_for_delivery' });
+
+    // Recent orders (last 10)
+    const recentOrders = await Order.find({ orderStatus: { $ne: 'cancelled' } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('orderNumber customer.name finalAmount orderStatus createdAt')
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        today: todayMetrics[0] || { revenue: 0, orders: 0, averageOrderValue: 0 },
+        yesterday: yesterdayMetrics[0] || { revenue: 0, orders: 0 },
+        week: weekMetrics[0] || { revenue: 0, orders: 0 },
+        month: monthMetrics[0] || { revenue: 0, orders: 0 },
+        orderStatus: {
+          pending: pendingOrders,
+          processing: processingOrders,
+          ready: readyOrders,
+          outForDelivery: outForDeliveryOrders
+        },
+        recentOrders
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard metrics error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch dashboard metrics' });
+  }
+};
+
+// Generate and download report
+exports.generateReport = async (req, res) => {
+  try {
+    const { type = 'sales', format = 'json', startDate, endDate } = req.query;
+    
+    let dateFilter = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      };
+    }
+
+    let reportData = {};
+
+    switch (type) {
+      case 'sales':
+        reportData = await generateSalesReport(dateFilter);
+        break;
+      case 'products':
+        reportData = await generateProductReport(dateFilter);
+        break;
+      case 'customers':
+        reportData = await generateCustomerReport(dateFilter);
+        break;
+      default:
+        return res.status(400).json({ success: false, message: 'Invalid report type' });
+    }
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csv = generateCSV(reportData);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${type}_report_${new Date().toISOString().split('T')[0]}.csv"`);
+      return res.send(csv);
+    } else if (format === 'pdf') {
+      // Generate PDF (you would need a PDF library like puppeteer or jsPDF)
+      // For now, return JSON
+      res.json({ success: true, data: reportData });
+    } else {
+      res.json({ success: true, data: reportData });
+    }
+  } catch (error) {
+    console.error('Report generation error:', error);
+    res.status(500).json({ success: false, message: 'Failed to generate report' });
+  }
+};
+
+// Helper functions for report generation
+async function generateSalesReport(dateFilter) {
+  const salesData = await Order.aggregate([
+    { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' }
+        },
+        revenue: { $sum: '$finalAmount' },
+        orders: { $sum: 1 },
+        averageOrderValue: { $avg: '$finalAmount' }
+      }
+    },
+    { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+  ]);
+
+  return {
+    type: 'sales',
+    generatedAt: new Date(),
+    data: salesData
+  };
+}
+
+async function generateProductReport(dateFilter) {
+  const productData = await Order.aggregate([
+    { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.product',
+        totalQuantity: { $sum: '$items.quantity' },
+        totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+        orderCount: { $sum: 1 }
+      }
+    },
+    { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } },
+    { $unwind: '$product' },
+    { $sort: { totalRevenue: -1 } }
+  ]);
+
+  return {
+    type: 'products',
+    generatedAt: new Date(),
+    data: productData
+  };
+}
+
+async function generateCustomerReport(dateFilter) {
+  const customerData = await Order.aggregate([
+    { $match: { ...dateFilter, orderStatus: { $ne: 'cancelled' } } },
+    {
+      $group: {
+        _id: '$customer.email',
+        customerName: { $first: '$customer.name' },
+        totalOrders: { $sum: 1 },
+        totalSpent: { $sum: '$finalAmount' },
+        averageOrderValue: { $avg: '$finalAmount' },
+        firstOrder: { $min: '$createdAt' },
+        lastOrder: { $max: '$createdAt' }
+      }
+    },
+    { $sort: { totalSpent: -1 } }
+  ]);
+
+  return {
+    type: 'customers',
+    generatedAt: new Date(),
+    data: customerData
+  };
+}
+
+function generateCSV(data) {
+  // Simple CSV generation
+  if (!data.data || data.data.length === 0) return '';
+  
+  const headers = Object.keys(data.data[0]).join(',');
+  const rows = data.data.map(row => 
+    Object.values(row).map(value => 
+      typeof value === 'object' ? JSON.stringify(value) : value
+    ).join(',')
+  );
+  
+  return [headers, ...rows].join('\n');
+}
+
+// ==================== EMAIL REPORTS ====================
+
+// Send manual reports
+exports.sendDailyReport = async (req, res) => {
+  try {
+    const { recipients } = req.body;
+    const schedulerService = require('../services/schedulerService');
+    
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Recipients array is required' 
+      });
+    }
+
+    await schedulerService.sendDailyReportNow(recipients);
+    
+    res.json({
+      success: true,
+      message: 'Daily report sent successfully'
+    });
+  } catch (error) {
+    console.error('Send daily report error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send daily report' 
+    });
+  }
+};
+
+exports.sendWeeklyReport = async (req, res) => {
+  try {
+    const { recipients } = req.body;
+    const schedulerService = require('../services/schedulerService');
+    
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Recipients array is required' 
+      });
+    }
+
+    await schedulerService.sendWeeklyReportNow(recipients);
+    
+    res.json({
+      success: true,
+      message: 'Weekly report sent successfully'
+    });
+  } catch (error) {
+    console.error('Send weekly report error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send weekly report' 
+    });
+  }
+};
+
+exports.sendMonthlyReport = async (req, res) => {
+  try {
+    const { recipients } = req.body;
+    const schedulerService = require('../services/schedulerService');
+    
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Recipients array is required' 
+      });
+    }
+
+    await schedulerService.sendMonthlyReportNow(recipients);
+    
+    res.json({
+      success: true,
+      message: 'Monthly report sent successfully'
+    });
+  } catch (error) {
+    console.error('Send monthly report error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send monthly report' 
+    });
+  }
+};
+
+// Scheduler management
+exports.getSchedulerStatus = async (req, res) => {
+  try {
+    const schedulerService = require('../services/schedulerService');
+    const status = schedulerService.getStatus();
+    
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    console.error('Get scheduler status error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to get scheduler status' 
+    });
+  }
+};
+
+exports.updateSchedule = async (req, res) => {
+  try {
+    const { jobName, cronExpression } = req.body;
+    const schedulerService = require('../services/schedulerService');
+    
+    if (!jobName || !cronExpression) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Job name and cron expression are required' 
+      });
+    }
+
+    schedulerService.updateSchedule(jobName, cronExpression);
+    
+    res.json({
+      success: true,
+      message: 'Schedule updated successfully'
+    });
+  } catch (error) {
+    console.error('Update schedule error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update schedule' 
+    });
+  }
+};
+
+exports.startScheduler = async (req, res) => {
+  try {
+    const schedulerService = require('../services/schedulerService');
+    await schedulerService.start();
+    
+    res.json({
+      success: true,
+      message: 'Scheduler started successfully'
+    });
+  } catch (error) {
+    console.error('Start scheduler error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to start scheduler' 
+    });
+  }
+};
+
+exports.stopScheduler = async (req, res) => {
+  try {
+    const schedulerService = require('../services/schedulerService');
+    schedulerService.stop();
+    
+    res.json({
+      success: true,
+      message: 'Scheduler stopped successfully'
+    });
+  } catch (error) {
+    console.error('Stop scheduler error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to stop scheduler' 
+    });
   }
 };

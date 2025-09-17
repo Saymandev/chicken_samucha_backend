@@ -183,7 +183,9 @@ router.put('/settings/payments', adminController.updatePaymentSettings);
 
 // System settings
 router.get('/settings', adminController.getSystemSettings);
+router.get('/settings/:category', adminController.getSettingsByCategory);
 router.put('/settings', adminController.updateSystemSettings);
+router.post('/settings/reset', adminController.resetSettingsToDefaults);
 
 // Dashboard statistics
 router.get('/dashboard/stats', adminController.getDashboardStats);
@@ -196,5 +198,21 @@ router.post('/notifications', notificationController.createNotification);
 router.put('/notifications/:id/read', notificationController.markAsRead);
 router.put('/notifications/mark-all-read', notificationController.markAllAsRead);
 router.delete('/notifications/:id', notificationController.deleteNotification);
+
+// Reports & Analytics
+router.get('/reports/sales-analytics', adminController.getSalesAnalytics);
+router.get('/reports/dashboard-metrics', adminController.getDashboardMetrics);
+router.get('/reports/generate', adminController.generateReport);
+
+// Email Reports
+router.post('/reports/send-daily', adminController.sendDailyReport);
+router.post('/reports/send-weekly', adminController.sendWeeklyReport);
+router.post('/reports/send-monthly', adminController.sendMonthlyReport);
+
+// Scheduler Management
+router.get('/scheduler/status', adminController.getSchedulerStatus);
+router.post('/scheduler/start', adminController.startScheduler);
+router.post('/scheduler/stop', adminController.stopScheduler);
+router.put('/scheduler/update', adminController.updateSchedule);
 
 module.exports = router; 
