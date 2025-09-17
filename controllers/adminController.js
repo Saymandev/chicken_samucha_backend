@@ -1428,10 +1428,14 @@ exports.getSchedulerStatus = async (req, res) => {
       error: 'Scheduler service not available'
     };
     
+    // Use the same logic as the public endpoint for consistency
     const emailServiceStatus = {
       initialized: !!(emailReportService && emailReportService.transporter),
-      hasCredentials: !!(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_APP_PASSWORD),
-      available: !!emailReportService
+      hasCredentials: !!(process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_SECRET || process.env.GMAIL_APP_PASSWORD),
+      available: !!emailReportService,
+      hasOAuth2: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+      hasAppPassword: !!(process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER),
+      hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json'))
     };
     
     res.json({
