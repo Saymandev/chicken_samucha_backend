@@ -1435,7 +1435,13 @@ exports.getSchedulerStatus = async (req, res) => {
       available: !!emailReportService,
       hasOAuth2: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
       hasAppPassword: !!(process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER),
-      hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json'))
+      hasServiceAccount: (() => {
+        try {
+          return require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json'));
+        } catch (error) {
+          return false;
+        }
+      })()
     };
     
     res.json({
