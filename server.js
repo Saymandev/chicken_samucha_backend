@@ -112,6 +112,52 @@ app.use((req, res, next) => {
   next();
 });
 
+// Public test endpoints (temporary - remove in production)
+app.get('/api/test-email', async (req, res) => {
+  try {
+    const emailReportService = require('./services/emailReportService');
+    
+    res.json({
+      success: true,
+      message: 'Email service status check',
+      status: {
+        serviceAvailable: !!emailReportService,
+        transporterInitialized: !!(emailReportService && emailReportService.transporter),
+        credentials: {
+          hasOAuth2: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+          hasAppPassword: !!(process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER),
+          hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, 'google-credentials.json'))
+        },
+        environment: {
+          nodeEnv: process.env.NODE_ENV,
+          hasGmailUser: !!process.env.GMAIL_USER
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Email status check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check email service status',
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/test-email', async (req, res) => {
+  try {
+    const adminController = require('./controllers/adminController');
+    await adminController.testEmailService(req, res);
+  } catch (error) {
+    console.error('Public email test error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Email service test failed',
+      error: error.message
+    });
+  }
+});
+
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

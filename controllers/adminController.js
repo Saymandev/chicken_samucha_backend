@@ -1408,13 +1408,30 @@ exports.sendMonthlyReport = async (req, res) => {
 // Scheduler management
 exports.getSchedulerStatus = async (req, res) => {
   try {
-    const schedulerService = require('../services/schedulerService');
-    const emailReportService = require('../services/emailReportService');
+    let schedulerService, emailReportService;
     
-    const status = schedulerService.getStatus();
+    try {
+      schedulerService = require('../services/schedulerService');
+    } catch (error) {
+      console.error('Scheduler service not available:', error.message);
+    }
+    
+    try {
+      emailReportService = require('../services/emailReportService');
+    } catch (error) {
+      console.error('Email service not available:', error.message);
+    }
+    
+    const status = schedulerService ? schedulerService.getStatus() : {
+      isRunning: false,
+      jobs: {},
+      error: 'Scheduler service not available'
+    };
+    
     const emailServiceStatus = {
-      initialized: !!emailReportService.transporter,
-      hasCredentials: !!(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_APP_PASSWORD)
+      initialized: !!(emailReportService && emailReportService.transporter),
+      hasCredentials: !!(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_APP_PASSWORD),
+      available: !!emailReportService
     };
     
     res.json({
@@ -1502,6 +1519,15 @@ exports.testEmailService = async (req, res) => {
   try {
     const emailReportService = require('../services/emailReportService');
     
+    // Check if email service is available
+    if (!emailReportService) {
+      return res.status(500).json({
+        success: false,
+        message: 'Email service not available',
+        error: 'EmailReportService could not be loaded'
+      });
+    }
+    
     if (!emailReportService.transporter) {
       return res.status(400).json({
         success: false,
@@ -1509,7 +1535,8 @@ exports.testEmailService = async (req, res) => {
         details: {
           hasOAuth2: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
           hasAppPassword: !!(process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER),
-          hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json'))
+          hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json')),
+          transporterExists: !!emailReportService.transporter
         }
       });
     }
@@ -1521,13 +1548,18 @@ exports.testEmailService = async (req, res) => {
       await emailReportService.sendDailyReport(testRecipients);
       res.json({
         success: true,
-        message: 'Test email sent successfully! Check your inbox.'
+        message: 'Test email sent successfully! Check your inbox.',
+        recipients: testRecipients
       });
     } catch (emailError) {
       res.status(500).json({
         success: false,
         message: 'Failed to send test email',
-        error: emailError.message
+        error: emailError.message,
+        details: {
+          errorType: emailError.constructor.name,
+          stack: process.env.NODE_ENV === 'development' ? emailError.stack : undefined
+        }
       });
     }
   } catch (error) {
@@ -1535,7 +1567,11 @@ exports.testEmailService = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to test email service',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      details: {
+        errorType: error.constructor.name,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }
     });
   }
 };

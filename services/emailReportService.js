@@ -51,7 +51,7 @@ class EmailReportService {
 
     const accessToken = await oauth2Client.getAccessToken();
 
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         type: 'OAuth2',
@@ -65,7 +65,7 @@ class EmailReportService {
   }
 
   async setupAppPassword() {
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,
@@ -87,7 +87,7 @@ class EmailReportService {
     const authClient = await auth.getClient();
     const accessToken = await authClient.getAccessToken();
 
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         type: 'OAuth2',

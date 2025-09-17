@@ -1,4 +1,11 @@
-const cron = require('node-cron');
+let cron;
+try {
+  cron = require('node-cron');
+} catch (error) {
+  console.error('node-cron not installed. Scheduler service will not be available.');
+  cron = null;
+}
+
 const emailReportService = require('./emailReportService');
 const User = require('../models/User');
 
@@ -9,6 +16,11 @@ class SchedulerService {
   }
 
   async start() {
+    if (!cron) {
+      console.log('node-cron not available. Scheduler cannot start.');
+      return;
+    }
+
     if (this.isRunning) {
       console.log('Scheduler is already running');
       return;
@@ -46,6 +58,8 @@ class SchedulerService {
   }
 
   scheduleDailyReport() {
+    if (!cron) return;
+    
     const job = cron.schedule('0 9 * * *', async () => {
       try {
         console.log('Generating daily report...');
@@ -71,6 +85,8 @@ class SchedulerService {
   }
 
   scheduleWeeklyReport() {
+    if (!cron) return;
+    
     const job = cron.schedule('0 10 * * 1', async () => {
       try {
         console.log('Generating weekly report...');
@@ -96,6 +112,8 @@ class SchedulerService {
   }
 
   scheduleMonthlyReport() {
+    if (!cron) return;
+    
     const job = cron.schedule('0 11 1 * *', async () => {
       try {
         console.log('Generating monthly report...');
