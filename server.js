@@ -324,8 +324,14 @@ server.listen(PORT, () => {
   serverMonitor.startMonitoring();
   
   // Start automated report scheduler
-  const schedulerService = require('./services/schedulerService');
-  schedulerService.start().catch(err => {
-    console.error('Failed to start scheduler:', err);
-  });
+  try {
+    const schedulerService = require('./services/schedulerService');
+    schedulerService.start().catch(err => {
+      console.error('Failed to start scheduler:', err);
+      console.log('Scheduler will be available for manual start via admin panel');
+    });
+  } catch (error) {
+    console.error('Failed to load scheduler service:', error);
+    console.log('Scheduler service will not be available');
+  }
 }); 

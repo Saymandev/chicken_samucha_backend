@@ -14,22 +14,27 @@ class EmailReportService {
   async initializeTransporter() {
     try {
       // Method 1: Using OAuth2 (Recommended for production)
-      if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
         await this.setupOAuth2();
+        console.log('Email service initialized with OAuth2');
       }
       // Method 2: Using App Password (Easier for development)
-      else if (process.env.GMAIL_APP_PASSWORD) {
+      else if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
         await this.setupAppPassword();
+        console.log('Email service initialized with App Password');
       }
       // Method 3: Using Service Account
       else if (fs.existsSync(path.join(__dirname, '../google-credentials.json'))) {
         await this.setupServiceAccount();
+        console.log('Email service initialized with Service Account');
       }
       else {
         console.log('No email credentials found. Email service disabled.');
+        console.log('To enable email reports, set up Google OAuth2 or App Password credentials.');
       }
     } catch (error) {
       console.error('Failed to initialize email service:', error);
+      this.transporter = null;
     }
   }
 

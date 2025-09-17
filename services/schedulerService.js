@@ -14,19 +14,25 @@ class SchedulerService {
       return;
     }
 
-    console.log('Starting automated report scheduler...');
-    this.isRunning = true;
+    try {
+      console.log('Starting automated report scheduler...');
+      this.isRunning = true;
 
-    // Daily report at 9:00 AM
-    this.scheduleDailyReport();
-    
-    // Weekly report every Monday at 10:00 AM
-    this.scheduleWeeklyReport();
-    
-    // Monthly report on 1st of every month at 11:00 AM
-    this.scheduleMonthlyReport();
+      // Daily report at 9:00 AM
+      this.scheduleDailyReport();
+      
+      // Weekly report every Monday at 10:00 AM
+      this.scheduleWeeklyReport();
+      
+      // Monthly report on 1st of every month at 11:00 AM
+      this.scheduleMonthlyReport();
 
-    console.log('Scheduler started successfully');
+      console.log('Scheduler started successfully');
+    } catch (error) {
+      console.error('Failed to start scheduler:', error);
+      this.isRunning = false;
+      throw error;
+    }
   }
 
   stop() {
@@ -127,6 +133,9 @@ class SchedulerService {
   // Manual report sending methods
   async sendDailyReportNow(recipients) {
     try {
+      if (!emailReportService.transporter) {
+        throw new Error('Email service not initialized. Please check your email credentials.');
+      }
       await emailReportService.sendDailyReport(recipients);
       console.log('Daily report sent manually');
     } catch (error) {
@@ -137,6 +146,9 @@ class SchedulerService {
 
   async sendWeeklyReportNow(recipients) {
     try {
+      if (!emailReportService.transporter) {
+        throw new Error('Email service not initialized. Please check your email credentials.');
+      }
       await emailReportService.sendWeeklyReport(recipients);
       console.log('Weekly report sent manually');
     } catch (error) {
@@ -147,6 +159,9 @@ class SchedulerService {
 
   async sendMonthlyReportNow(recipients) {
     try {
+      if (!emailReportService.transporter) {
+        throw new Error('Email service not initialized. Please check your email credentials.');
+      }
       await emailReportService.sendMonthlyReport(recipients);
       console.log('Monthly report sent manually');
     } catch (error) {

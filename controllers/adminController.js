@@ -1409,17 +1409,27 @@ exports.sendMonthlyReport = async (req, res) => {
 exports.getSchedulerStatus = async (req, res) => {
   try {
     const schedulerService = require('../services/schedulerService');
+    const emailReportService = require('../services/emailReportService');
+    
     const status = schedulerService.getStatus();
+    const emailServiceStatus = {
+      initialized: !!emailReportService.transporter,
+      hasCredentials: !!(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_APP_PASSWORD)
+    };
     
     res.json({
       success: true,
-      data: status
+      data: {
+        ...status,
+        emailService: emailServiceStatus
+      }
     });
   } catch (error) {
     console.error('Get scheduler status error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to get scheduler status' 
+      message: 'Failed to get scheduler status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -1483,6 +1493,49 @@ exports.stopScheduler = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Failed to stop scheduler' 
+    });
+  }
+};
+
+// Test email service
+exports.testEmailService = async (req, res) => {
+  try {
+    const emailReportService = require('../services/emailReportService');
+    
+    if (!emailReportService.transporter) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email service not initialized. Please check your email credentials.',
+        details: {
+          hasOAuth2: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+          hasAppPassword: !!(process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER),
+          hasServiceAccount: require('fs').existsSync(require('path').join(__dirname, '../google-credentials.json'))
+        }
+      });
+    }
+
+    // Test with a simple email
+    const testRecipients = [process.env.GMAIL_USER || 'test@example.com'];
+    
+    try {
+      await emailReportService.sendDailyReport(testRecipients);
+      res.json({
+        success: true,
+        message: 'Test email sent successfully! Check your inbox.'
+      });
+    } catch (emailError) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send test email',
+        error: emailError.message
+      });
+    }
+  } catch (error) {
+    console.error('Test email service error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to test email service',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
