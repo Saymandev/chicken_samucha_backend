@@ -262,6 +262,7 @@ const getPublicPaymentSettings = async (req, res) => {
     const Settings = require('../models/Settings');
     const paymentSettings = await Settings.getPaymentSettings();
     const deliverySettings = await Settings.getByCategory('delivery');
+    const generalSettings = await Settings.getByCategory('general');
     
     // Return only public information that customers need
     const publicSettings = {
@@ -285,7 +286,9 @@ const getPublicPaymentSettings = async (req, res) => {
         enabled: paymentSettings.cashOnDelivery?.enabled !== false, // Default to true
         deliveryCharge: paymentSettings.cashOnDelivery?.deliveryCharge || 60
       },
-      freeDeliveryThreshold: deliverySettings?.freeDeliveryThreshold ?? 500
+      freeDeliveryThreshold: deliverySettings?.freeDeliveryThreshold ?? 500,
+      // Normalized delivery charge used by checkout (prefers general setting)
+      deliveryCharge: (generalSettings?.deliveryCharge ?? paymentSettings.cashOnDelivery?.deliveryCharge) || 60
     };
 
     res.json({
