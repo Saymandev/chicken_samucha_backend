@@ -94,7 +94,7 @@ categorySchema.methods.updateProductCount = async function() {
   const Product = mongoose.model('Product');
   const count = await Product.countDocuments({ 
     category: this._id,
-    isActive: true 
+    isVisible: true
   });
   this.productCount = count;
   await this.save();
@@ -112,7 +112,7 @@ categorySchema.statics.getCategoriesWithProductCount = async function() {
   for (let category of categories) {
     const count = await Product.countDocuments({ 
       category: category._id,
-      isActive: true 
+      isVisible: true
     });
     category.productCount = count;
   }
