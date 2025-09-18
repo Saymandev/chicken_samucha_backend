@@ -101,10 +101,11 @@ categorySchema.methods.updateProductCount = async function() {
   return count;
 };
 
-// Static method to get categories with product count
+// Static method to get categories with product count (including parent reference populated)
 categorySchema.statics.getCategoriesWithProductCount = async function() {
   const categories = await this.find({ isActive: true })
     .sort({ sortOrder: 1, createdAt: 1 })
+    .populate('parentCategory', 'name slug')
     .lean();
   
   const Product = mongoose.model('Product');
