@@ -256,11 +256,12 @@ const reorderSliderItems = async (req, res) => {
   }
 };
 
-// Get public payment settings (for customers)
+// Get public payment and delivery settings (for customers)
 const getPublicPaymentSettings = async (req, res) => {
   try {
     const Settings = require('../models/Settings');
     const paymentSettings = await Settings.getPaymentSettings();
+    const deliverySettings = await Settings.getByCategory('delivery');
     
     // Return only public information that customers need
     const publicSettings = {
@@ -283,7 +284,8 @@ const getPublicPaymentSettings = async (req, res) => {
       cashOnDelivery: {
         enabled: paymentSettings.cashOnDelivery?.enabled !== false, // Default to true
         deliveryCharge: paymentSettings.cashOnDelivery?.deliveryCharge || 60
-      }
+      },
+      freeDeliveryThreshold: deliverySettings?.freeDeliveryThreshold ?? 500
     };
 
     res.json({
@@ -300,7 +302,8 @@ const getPublicPaymentSettings = async (req, res) => {
         nagad: { enabled: true, merchantNumber: '01234567891' },
         rocket: { enabled: true, merchantNumber: '01234567892' },
         upay: { enabled: false, merchantNumber: '01234567893' },
-        cashOnDelivery: { enabled: true, deliveryCharge: 60 }
+        cashOnDelivery: { enabled: true, deliveryCharge: 60 },
+        freeDeliveryThreshold: 500
       }
     });
   }
