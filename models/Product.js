@@ -76,6 +76,18 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: '1 piece'
   },
+  youtubeVideoUrl: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Optional field
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = v.match(regExp);
+        return match && match[2].length === 11;
+      },
+      message: 'Please provide a valid YouTube URL'
+    }
+  },
   isAvailable: {
     type: Boolean,
     default: true
