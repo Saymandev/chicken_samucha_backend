@@ -14,7 +14,8 @@ const getProducts = async (req, res) => {
       maxPrice,
       sortBy = 'displayOrder',
       sortOrder = 'asc',
-      language = 'en'
+      language = 'en',
+      filter
     } = req.query;
 
     // Build query
@@ -42,6 +43,33 @@ const getProducts = async (req, res) => {
       query.price = {};
       if (minPrice) query.price.$gte = parseFloat(minPrice);
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    // Filter options
+    if (filter) {
+      switch (filter) {
+        case 'best-seller':
+          // Products with high sales or featured status
+          query.$or = [
+            { isFeatured: true },
+            { 'analytics.purchaseCount': { $gte: 50 } },
+            { salesQuantity: { $gte: 50 } }
+          ];
+          break;
+        case 'offers':
+          // Products with discount
+          query.discountPrice = { $exists: true, $ne: null, $gt: 0 };
+          break;
+        case 'new':
+          // Recently added products (last 30 days)
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          query.createdAt = { $gte: thirtyDaysAgo };
+          break;
+        case 'featured':
+          query.isFeatured = true;
+          break;
+      }
     }
 
     // Sort options

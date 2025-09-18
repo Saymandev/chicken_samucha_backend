@@ -53,14 +53,9 @@ const productSchema = new mongoose.Schema({
     }
   }],
   category: {
-    en: {
-      type: String,
-      default: 'Samosa'
-    },
-    bn: {
-      type: String,
-      default: 'সমুচা'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true
   },
   ingredients: {
     en: [String],

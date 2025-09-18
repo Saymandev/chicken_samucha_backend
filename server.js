@@ -30,6 +30,7 @@ const chatRoutes = require('./routes/chat');
 const contactRoutes = require('./routes/contact');
 const paymentRoutes = require('./routes/payments');
 const couponRoutes = require('./routes/coupons');
+const categoryRoutes = require('./routes/category');
 
 // OAuth setup routes (for development/setup only)
 const oauthSetupRoutes = require('./routes/oauth-setup');
@@ -173,6 +174,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // OAuth setup routes (only in development)
 if (process.env.NODE_ENV === 'development') {
