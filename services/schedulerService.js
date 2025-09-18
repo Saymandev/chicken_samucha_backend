@@ -48,40 +48,81 @@ class SchedulerService {
   }
 
   stop() {
-    this.jobs.forEach((job, name) => {
-      job.destroy();
-      console.log(`Stopped job: ${name}`);
-    });
-    this.jobs.clear();
-    this.isRunning = false;
-    console.log('Scheduler stopped');
+    try {
+      if (!cron) {
+        throw new Error('node-cron not available. Cannot stop scheduler.');
+      }
+
+      if (!this.isRunning) {
+        console.log('Scheduler is not running. Nothing to stop.');
+        return;
+      }
+
+      if (this.jobs.size === 0) {
+        console.log('No jobs to stop.');
+        this.isRunning = false;
+        return;
+      }
+
+      this.jobs.forEach((job, name) => {
+        try {
+          if (job && typeof job.destroy === 'function') {
+            job.destroy();
+            console.log(`Stopped job: ${name}`);
+          } else {
+            console.warn(`Job ${name} is not a valid cron job`);
+          }
+        } catch (jobError) {
+          console.error(`Error stopping job ${name}:`, jobError);
+        }
+      });
+      
+      this.jobs.clear();
+      this.isRunning = false;
+      console.log('Scheduler stopped successfully');
+    } catch (error) {
+      console.error('Error stopping scheduler:', error);
+      throw error;
+    }
   }
 
   scheduleDailyReport() {
-    if (!cron) return;
+    if (!cron) {
+      console.error('node-cron not available. Cannot schedule daily report.');
+      return;
+    }
     
-    const job = cron.schedule('0 9 * * *', async () => {
-      try {
-        console.log('Generating daily report...');
-        const adminEmails = await this.getAdminEmails();
-        
-        if (adminEmails.length > 0) {
-          await emailReportService.sendDailyReport(adminEmails);
-          console.log('Daily report sent successfully');
-        } else {
-          console.log('No admin emails found for daily report');
+    try {
+      const job = cron.schedule('0 9 * * *', async () => {
+        try {
+          console.log('Generating daily report...');
+          const adminEmails = await this.getAdminEmails();
+          
+          if (adminEmails.length > 0) {
+            await emailReportService.sendDailyReport(adminEmails);
+            console.log('Daily report sent successfully');
+          } else {
+            console.log('No admin emails found for daily report');
+          }
+        } catch (error) {
+          console.error('Failed to send daily report:', error);
         }
-      } catch (error) {
-        console.error('Failed to send daily report:', error);
-      }
-    }, {
-      scheduled: false,
-      timezone: "Asia/Dhaka"
-    });
+      }, {
+        scheduled: false,
+        timezone: "Asia/Dhaka"
+      });
 
-    this.jobs.set('daily', job);
-    job.start();
-    console.log('Daily report scheduled for 9:00 AM (Asia/Dhaka timezone)');
+      if (!job) {
+        throw new Error('Failed to create daily report cron job');
+      }
+
+      this.jobs.set('daily', job);
+      job.start();
+      console.log('Daily report scheduled for 9:00 AM (Asia/Dhaka timezone)');
+    } catch (error) {
+      console.error('Error scheduling daily report:', error);
+      throw error;
+    }
   }
 
   scheduleWeeklyReport() {

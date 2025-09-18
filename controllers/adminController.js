@@ -1519,7 +1519,31 @@ exports.stopScheduler = async (req, res) => {
     console.error('Stop scheduler error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to stop scheduler' 
+      message: `Failed to stop scheduler: ${error.message}` 
+    });
+  }
+};
+
+// Test scheduler service
+exports.testScheduler = async (req, res) => {
+  try {
+    const schedulerService = require('../services/schedulerService');
+    const status = schedulerService.getStatus();
+    
+    res.json({
+      success: true,
+      message: 'Scheduler test completed',
+      data: {
+        status,
+        cronAvailable: !!require('node-cron'),
+        jobsCount: schedulerService.jobs ? schedulerService.jobs.size : 0
+      }
+    });
+  } catch (error) {
+    console.error('Test scheduler error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: `Scheduler test failed: ${error.message}` 
     });
   }
 };

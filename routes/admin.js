@@ -218,4 +218,7 @@ router.put('/scheduler/update', adminController.updateSchedule);
 // Email Service Testing
 router.post('/email/test', adminController.testEmailService);
 
+// Scheduler Testing
+router.get('/scheduler/test', adminController.testScheduler);
+
 module.exports = router; 
