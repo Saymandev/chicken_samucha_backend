@@ -51,19 +51,18 @@ const getProducts = async (req, res) => {
     }
 
     // Filter options
+    let sortOverride = null;
     if (filter) {
       switch (filter) {
         case 'best-seller':
-          // Products with high sales or featured status
-          query.$or = [
-            { isFeatured: true },
-            { 'analytics.purchaseCount': { $gte: 50 } },
-            { salesQuantity: { $gte: 50 } }
-          ];
+          // Prioritize most sold products
+          query['analytics.purchaseCount'] = { $gt: 0 };
+          sortOverride = { 'analytics.purchaseCount': -1 };
           break;
         case 'offers':
           // Products with discount
           query.discountPrice = { $exists: true, $ne: null, $gt: 0 };
+          // Optional: prioritize larger discounts (fallback to displayOrder if unsupported by driver)
           break;
         case 'new':
           // Recently added products (last 30 days)
@@ -78,8 +77,12 @@ const getProducts = async (req, res) => {
     }
 
     // Sort options
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    let sortOptions = {};
+    if (sortOverride) {
+      sortOptions = sortOverride;
+    } else {
+      sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    }
 
     const products = await Product.find(query)
       .sort(sortOptions)
