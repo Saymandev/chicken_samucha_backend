@@ -117,7 +117,7 @@ categorySchema.statics.getCategoriesWithProductCount = async function() {
     category.productCount = count;
   }
   
-  return categories.filter(cat => cat.productCount > 0);
+  return categories;
 };
 
 // Pre-save middleware to generate slug
