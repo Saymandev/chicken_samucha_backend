@@ -35,7 +35,12 @@ const getProducts = async (req, res) => {
 
     // Category filter
     if (category) {
-      query[`category.${language}`] = { $regex: category, $options: 'i' };
+      // First find the category by slug
+      const Category = require('../models/Category');
+      const categoryDoc = await Category.findOne({ slug: category });
+      if (categoryDoc) {
+        query.category = categoryDoc._id;
+      }
     }
 
     // Price range filter
@@ -154,7 +159,9 @@ const getProduct = async (req, res) => {
     const product = await Product.findOne({
       _id: req.params.id,
       isVisible: true
-    }).select('-__v');
+    })
+    .populate('category', 'name slug')
+    .select('-__v');
 
     if (!product) {
       return res.status(404).json({
