@@ -238,14 +238,34 @@ exports.updateCategoryOrder = async (req, res) => {
   }
 };
 
-// Get categories for navbar (only with products)
+// Get categories for navbar (return tree with children)
 exports.getNavbarCategories = async (req, res) => {
   try {
-    const categories = await Category.getCategoriesWithProductCount();
-    
+    // Flat list with productCount and parent populated
+    const flat = await Category.getCategoriesWithProductCount();
+
+    // Build tree using transformed ids
+    const idToNode = new Map();
+    flat.forEach(cat => {
+      // Normalize id to string for Map keys
+      const id = String(cat._id || cat.id);
+      idToNode.set(id, { ...cat, id, children: [] });
+    });
+
+    const roots = [];
+    flat.forEach(cat => {
+      const id = String(cat._id || cat.id);
+      const parentId = cat.parentCategory ? String(cat.parentCategory._id || cat.parentCategory.id || cat.parentCategory) : null;
+      if (parentId && idToNode.has(parentId)) {
+        idToNode.get(parentId).children.push(idToNode.get(id));
+      } else {
+        roots.push(idToNode.get(id));
+      }
+    });
+
     res.json({
       success: true,
-      data: categories
+      data: roots
     });
   } catch (error) {
     console.error('Get navbar categories error:', error);
