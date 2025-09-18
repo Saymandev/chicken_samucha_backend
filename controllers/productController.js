@@ -577,7 +577,7 @@ const getRelatedProducts = async (req, res) => {
       _id: { $ne: id },
       isVisible: true,
       isAvailable: true,
-      'category.en': product.category.en
+      category: product.category
     })
     .sort({ 'analytics.viewCount': -1 })
     .limit(parseInt(limit))
