@@ -85,6 +85,7 @@ const getProducts = async (req, res) => {
     }
 
     const products = await Product.find(query)
+      .populate('category', 'name slug')
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -110,6 +111,7 @@ const getProducts = async (req, res) => {
         ingredients: product.ingredients,
         preparationTime: product.preparationTime,
         servingSize: product.servingSize,
+        youtubeVideoUrl: product.youtubeVideoUrl,
         isFeatured: product.isFeatured,
         ratings: product.ratings,
         tags: product.tags,
@@ -138,6 +140,7 @@ const getFeaturedProducts = async (req, res) => {
       isAvailable: true,
       isFeatured: true
     })
+      .populate('category', 'name slug')
       .sort({ displayOrder: 1 })
       .limit(parseInt(limit))
       .select('-__v');
@@ -579,9 +582,10 @@ const getRelatedProducts = async (req, res) => {
       isAvailable: true,
       category: product.category
     })
+    .populate('category', 'name slug')
     .sort({ 'analytics.viewCount': -1 })
     .limit(parseInt(limit))
-    .select('name price discountPrice images ratings analytics');
+    .select('name price discountPrice images ratings analytics category');
 
     res.json({
       success: true,
