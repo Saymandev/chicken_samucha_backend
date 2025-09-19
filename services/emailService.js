@@ -198,7 +198,7 @@ class EmailService {
                 <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
                 <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
                 <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
-                <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">${orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span></p>
+                <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">${orderDetails.status ? orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending'}</span></p>
                 ${orderDetails.estimatedDeliveryTime ? `<p><strong>Estimated Delivery:</strong> ${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>` : ''}
               </div>
 
@@ -255,7 +255,7 @@ class EmailService {
       }
 
       // Format status for display
-      const statusDisplay = orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const statusDisplay = orderDetails.status ? orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending';
       
       // Generate items list HTML
       const itemsHtml = orderDetails.items.map(item => `

@@ -152,6 +152,7 @@ const createOrder = async (req, res) => {
         customerName: order.customer.name,
         orderDate: order.createdAt,
         totalAmount: order.finalAmount,
+        status: order.orderStatus,
         items: order.items,
         deliveryInfo: order.deliveryInfo,
         paymentInfo: order.paymentInfo
@@ -727,6 +728,7 @@ const updateOrderStatus = async (req, res) => {
                   customerName: user.name,
                   orderDate: updatedOrder.createdAt,
                   totalAmount: updatedOrder.finalAmount,
+                  status: status,
                   items: updatedOrder.items,
                   deliveryInfo: updatedOrder.deliveryInfo,
                   paymentInfo: updatedOrder.paymentInfo
@@ -760,10 +762,11 @@ const updateOrderStatus = async (req, res) => {
             await emailService.sendOrderConfirmation(
               updatedOrder.customer.email,
               {
-                orderNumber: updatedOrder.orderNumber,
+                orderNumber: orderNumber,
                 customerName: updatedOrder.customer.name,
                 orderDate: updatedOrder.createdAt,
                 totalAmount: updatedOrder.finalAmount,
+                status: status,
                 items: updatedOrder.items,
                 deliveryInfo: updatedOrder.deliveryInfo,
                 paymentInfo: updatedOrder.paymentInfo
