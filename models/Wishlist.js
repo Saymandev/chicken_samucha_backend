@@ -79,7 +79,7 @@ wishlistSchema.statics.getUserWishlist = async function(userId, page = 1, limit 
     const wishlistItems = await this.find({ user: userId })
       .populate({
         path: 'product',
-        select: 'name images price discountPrice isActive stock category',
+        select: 'name images price discountPrice isActive stock category description',
         populate: {
           path: 'category',
           select: 'name slug'
@@ -89,13 +89,18 @@ wishlistSchema.statics.getUserWishlist = async function(userId, page = 1, limit 
       .skip(skip)
       .limit(limit);
 
+    // Filter out items where product is null (deleted products)
+    const validItems = wishlistItems.filter(item => item.product !== null);
+    
+    console.log(`Found ${wishlistItems.length} wishlist items, ${validItems.length} valid items`);
+
     const total = await this.countDocuments({ user: userId });
 
     return {
-      items: wishlistItems,
-      total,
+      items: validItems,
+      total: validItems.length,
       page,
-      pages: Math.ceil(total / limit)
+      pages: Math.ceil(validItems.length / limit)
     };
   } catch (error) {
     throw error;

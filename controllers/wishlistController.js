@@ -10,16 +10,19 @@ exports.addToWishlist = async (req, res) => {
     // Check if product exists and is active
     const product = await Product.findById(productId);
     if (!product) {
+      console.log(`Product not found: ${productId}`);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
 
+    console.log(`Product found: ${product.name}, isActive: ${product.isActive}, stock: ${product.stock}`);
+    
     if (!product.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Product is not available'
+        message: 'Product is currently not available'
       });
     }
 
