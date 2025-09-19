@@ -94,13 +94,16 @@ notificationSchema.pre('save', function(next) {
 // Static method to create notification
 notificationSchema.statics.createNotification = async function(data) {
   try {
+    // Validate required fields
+    if (!data.type || !data.title || !data.message) {
+      throw new Error('Missing required notification fields: type, title, message');
+    }
+    
     const notification = await this.create(data);
     
     // Emit real-time notification via Socket.IO
     if (global.io) {
-      console.log(`🔔 Notification model emitting Socket.IO notification for user: ${notification.userId}`);
-      
-      // For admin notifications
+      // Always emit to admin dashboard
       global.io.to('admin-dashboard').emit('new-notification', {
         id: notification._id,
         type: notification.type,
@@ -110,8 +113,9 @@ notificationSchema.statics.createNotification = async function(data) {
         createdAt: notification.createdAt
       });
       
-      // For user notifications - emit to user-specific room
+      // For user notifications - emit to user-specific room only if userId exists
       if (notification.userId) {
+        console.log(`🔔 Notification model emitting Socket.IO notification for user: ${notification.userId}`);
         console.log(`🔔 Emitting to user-${notification.userId} room`);
         global.io.to(`user-${notification.userId}`).emit('new-user-notification', {
           id: notification._id,
@@ -122,6 +126,8 @@ notificationSchema.statics.createNotification = async function(data) {
           timestamp: notification.createdAt
         });
         console.log(`✅ Notification model Socket.IO emission completed`);
+      } else {
+        console.log(`🔔 Admin notification created (no user-specific emission needed)`);
       }
     } else {
       console.log(`⚠️ global.io not available in Notification model`);
