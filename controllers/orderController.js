@@ -2,10 +2,7 @@ const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
-const EmailService = require('../services/emailService');
-
-// Email service instance
-const emailService = new EmailService();
+const emailService = require('../services/emailService');
 
 // Create new order
 const createOrder = async (req, res) => {
@@ -701,7 +698,6 @@ const updateOrderStatus = async (req, res) => {
 
       // Send email notification for order status update
       try {
-        const emailService = require('../services/emailService');
         const User = require('../models/User');
         
         // Get user email if user is logged in
