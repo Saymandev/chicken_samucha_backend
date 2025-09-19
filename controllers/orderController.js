@@ -667,7 +667,8 @@ const updateOrderStatus = async (req, res) => {
         };
 
         const title = statusTitles[status] || 'Order Status Updated';
-        const message = statusMessages[status] || `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`;
+        const orderNumber = updatedOrder.orderNumber || updatedOrder._id.toString().slice(-6);
+        const message = statusMessages[status] || `Your order ${orderNumber} is now ${status.replace('_', ' ')}`;
         const priority = status === 'delivered' || status === 'cancelled' ? 'high' : 'medium';
 
         
@@ -679,7 +680,7 @@ const updateOrderStatus = async (req, res) => {
           userId: updatedOrder.user,
           orderId: updatedOrder._id,
           metadata: {
-            orderNumber: updatedOrder.orderNumber,
+            orderNumber: orderNumber,
             newStatus: status
           }
         });
@@ -687,18 +688,20 @@ const updateOrderStatus = async (req, res) => {
         
         // Emit real-time notification to user-specific room
         if (req.io) {
-          
           req.io.to(`user-${updatedOrder.user}`).emit('new-user-notification', {
             id: `order-${Date.now()}`,
             type: 'order',
             title: title,
             message: message,
             read: false,
-            timestamp: new Date()
+            timestamp: new Date(),
+            priority: priority,
+            orderId: updatedOrder._id,
+            metadata: {
+              orderNumber: orderNumber,
+              newStatus: status
+            }
           });
-          
-        } else {
-          
         }
       }
 
@@ -720,7 +723,7 @@ const updateOrderStatus = async (req, res) => {
               await emailService.sendOrderConfirmation(
                 user.email,
                 {
-                  orderNumber: updatedOrder.orderNumber,
+                  orderNumber: orderNumber,
                   customerName: user.name,
                   orderDate: updatedOrder.createdAt,
                   totalAmount: updatedOrder.finalAmount,
@@ -737,7 +740,7 @@ const updateOrderStatus = async (req, res) => {
                 user.email, 
                 user.name, 
                 {
-                  orderNumber: updatedOrder.orderNumber,
+                  orderNumber: orderNumber,
                   status: status,
                   estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime,
                   items: updatedOrder.items,
