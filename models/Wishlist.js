@@ -79,7 +79,7 @@ wishlistSchema.statics.getUserWishlist = async function(userId, page = 1, limit 
     const wishlistItems = await this.find({ user: userId })
       .populate({
         path: 'product',
-        select: 'name images price discountPrice isActive stock category description',
+        select: 'name images price discountPrice isAvailable stock category description',
         populate: {
           path: 'category',
           select: 'name slug'

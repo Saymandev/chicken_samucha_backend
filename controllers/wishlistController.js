@@ -17,9 +17,9 @@ exports.addToWishlist = async (req, res) => {
       });
     }
 
-    console.log(`Product found: ${product.name}, isActive: ${product.isActive}, stock: ${product.stock}`);
+    console.log(`Product found: ${product.name}, isAvailable: ${product.isAvailable}, stock: ${product.stock}`);
     
-    if (!product.isActive) {
+    if (!product.isAvailable) {
       return res.status(400).json({
         success: false,
         message: 'Product is currently not available'
