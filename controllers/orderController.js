@@ -692,6 +692,11 @@ const updateOrderStatus = async (req, res) => {
     // Emit real-time notification to user-specific room
     if (updatedOrder.user && req.io) {
       console.log(`🔔 Emitting Socket.IO notification to user-${updatedOrder.user} for status: ${status}`);
+      
+      // Check if the room exists
+      const room = req.io.sockets.adapter.rooms.get(`user-${updatedOrder.user}`);
+      console.log(`🔍 Room user-${updatedOrder.user} has ${room ? room.size : 0} connected users`);
+      
       req.io.to(`user-${updatedOrder.user}`).emit('new-user-notification', {
         id: `order-${Date.now()}`,
         type: 'order',
@@ -706,7 +711,7 @@ const updateOrderStatus = async (req, res) => {
           newStatus: status
         }
       });
-      console.log(`✅ Socket.IO notification emitted successfully`);
+      console.log(`✅ Socket.IO notification emitted successfully to user-${updatedOrder.user}`);
     } else {
       console.log(`⚠️ Cannot emit Socket.IO notification - user: ${updatedOrder.user}, io: ${!!req.io}`);
     }
