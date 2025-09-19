@@ -633,27 +633,37 @@ const getRelatedProducts = async (req, res) => {
 // Get multiple products by IDs (for recently viewed)
 const getProductsByIds = async (req, res) => {
   try {
-    // Express handles array parameters differently - check both 'ids' and 'ids[]'
-    let productIds = req.query.ids || req.query['ids[]'];
-    
+    // Accept IDs from body (POST) or query (GET), handling ids and ids[] formats
+    let productIds = (req.body && req.body.ids) || req.query.ids || req.query['ids[]'];
+
     console.log('🔍 getProductsByIds - Request query:', req.query);
+    console.log('🔍 getProductsByIds - Request body:', req.body);
     console.log('🔍 getProductsByIds - Raw ids:', req.query.ids);
     console.log('🔍 getProductsByIds - Raw ids[]:', req.query['ids[]']);
     console.log('🔍 getProductsByIds - IDs received:', productIds);
     console.log('🔍 getProductsByIds - IDs type:', typeof productIds, 'Array?', Array.isArray(productIds));
-    
-    // Handle both array and string formats
+
+    // Normalize into array: support JSON string, comma-separated string, single value, or array
     if (typeof productIds === 'string') {
-      productIds = [productIds];
+      const trimmed = productIds.trim();
+      if (trimmed.startsWith('[')) {
+        try { productIds = JSON.parse(trimmed); } catch { productIds = [trimmed]; }
+      } else {
+        productIds = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+      }
     } else if (!Array.isArray(productIds)) {
       productIds = [];
     }
-    
-    // Additional check: if we still don't have an array, try to extract from query string
-    if (productIds.length === 0 && req.query['ids[]']) {
-      productIds = Array.isArray(req.query['ids[]']) ? req.query['ids[]'] : [req.query['ids[]']];
+
+    // If bracket format was used and ended up as a single string, coerce
+    if (productIds.length === 0 && (req.query['ids[]'] || (req.body && req.body['ids[]']))) {
+      const raw = req.query['ids[]'] || (req.body && req.body['ids[]']);
+      productIds = Array.isArray(raw) ? raw : [raw];
       console.log('🔍 getProductsByIds - Extracted from ids[]:', productIds);
     }
+
+    // Dedupe and stringify
+    productIds = [...new Set(productIds.map(String))];
     
     console.log('🔍 getProductsByIds - Processed IDs:', productIds);
     
