@@ -4,26 +4,75 @@ const Product = require('../models/Product');
 // Get all categories
 exports.getAllCategories = async (req, res) => {
   try {
-    const { includeInactive = false, withProductCount = false } = req.query;
+    const { 
+      includeInactive = false, 
+      withProductCount = false, 
+      page = 1, 
+      limit = 10, 
+      search 
+    } = req.query;
     
     let query = {};
     if (!includeInactive) {
       query.isActive = true;
     }
     
-    let categories;
-    if (withProductCount === 'true') {
-      categories = await Category.getCategoriesWithProductCount();
-    } else {
-      categories = await Category.find(query)
-        .sort({ sortOrder: 1, createdAt: 1 })
-        .populate('parentCategory', 'name slug');
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { 'name.en': { $regex: search, $options: 'i' } },
+        { 'name.bn': { $regex: search, $options: 'i' } },
+        { 'slug': { $regex: search, $options: 'i' } }
+      ];
     }
     
-    res.json({
-      success: true,
-      data: categories
-    });
+    let categories;
+    if (withProductCount === 'true') {
+      // For pagination with product count, we need to implement it differently
+      const skip = (page - 1) * limit;
+      const total = await Category.countDocuments(query);
+      
+      categories = await Category.find(query)
+        .sort({ sortOrder: 1, createdAt: 1 })
+        .populate('parentCategory', 'name slug')
+        .skip(skip)
+        .limit(limit * 1);
+      
+      // Add product count to each category
+      categories = await Promise.all(categories.map(async (category) => {
+        const productCount = await Product.countDocuments({ category: category._id });
+        return { ...category.toObject(), productCount };
+      }));
+      
+      res.json({
+        success: true,
+        data: categories,
+        pagination: {
+          page: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total
+        }
+      });
+    } else {
+      const skip = (page - 1) * limit;
+      const total = await Category.countDocuments(query);
+      
+      categories = await Category.find(query)
+        .sort({ sortOrder: 1, createdAt: 1 })
+        .populate('parentCategory', 'name slug')
+        .skip(skip)
+        .limit(limit * 1);
+      
+      res.json({
+        success: true,
+        data: categories,
+        pagination: {
+          page: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total
+        }
+      });
+    }
   } catch (error) {
     console.error('Get categories error:', error);
     res.status(500).json({

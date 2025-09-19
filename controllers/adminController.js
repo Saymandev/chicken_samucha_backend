@@ -461,8 +461,35 @@ exports.updateHeroContent = async (req, res) => {
 
 exports.getSliderItems = async (req, res) => {
   try {
-    const sliderItems = await SliderItem.find().sort({ order: 1 });
-    res.json({ success: true, items: sliderItems });
+    const { page = 1, limit = 10, search } = req.query;
+    
+    let query = {};
+    if (search) {
+      query.$or = [
+        { 'title.en': { $regex: search, $options: 'i' } },
+        { 'title.bn': { $regex: search, $options: 'i' } },
+        { 'description.en': { $regex: search, $options: 'i' } },
+        { 'description.bn': { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const skip = (page - 1) * limit;
+    const total = await SliderItem.countDocuments(query);
+    
+    const sliderItems = await SliderItem.find(query)
+      .sort({ order: 1 })
+      .skip(skip)
+      .limit(limit * 1);
+    
+    res.json({ 
+      success: true, 
+      items: sliderItems,
+      pagination: {
+        page: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch slider items' });
   }
