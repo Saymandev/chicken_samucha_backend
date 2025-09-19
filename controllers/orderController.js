@@ -2,6 +2,10 @@ const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const EmailService = require('../services/emailService');
+
+// Email service instance
+const emailService = new EmailService();
 
 // Create new order
 const createOrder = async (req, res) => {
@@ -144,6 +148,55 @@ const createOrder = async (req, res) => {
    
     const order = await Order.create(orderData);
    
+    // Send order confirmation email
+    try {
+      await emailService.sendOrderConfirmation(order.customer.email, {
+        orderNumber: order.orderNumber,
+        customerName: order.customer.name,
+        orderDate: order.createdAt,
+        totalAmount: order.finalAmount,
+        items: order.items,
+        deliveryInfo: order.deliveryInfo,
+        paymentInfo: order.paymentInfo
+      });
+      console.log(`✅ Order confirmation email sent to ${order.customer.email}`);
+    } catch (error) {
+      console.error('❌ Error sending order confirmation email:', error);
+    }
+
+    // Create notification for user (if logged in)
+    if (order.user) {
+      try {
+        const Notification = require('../models/Notification');
+        await Notification.createNotification({
+          type: 'order',
+          title: 'Order Placed Successfully',
+          message: `Your order ${order.orderNumber} has been placed and is being processed.`,
+          priority: 'high',
+          userId: order.user,
+          orderId: order._id,
+          metadata: {
+            orderNumber: order.orderNumber,
+            status: 'pending'
+          }
+        });
+        
+        // Emit real-time notification to user-specific room
+        if (req.io) {
+          req.io.to(`user-${order.user}`).emit('new-user-notification', {
+            id: `order-${Date.now()}`,
+            type: 'order',
+            title: 'Order Placed Successfully',
+            message: `Your order ${order.orderNumber} has been placed and is being processed.`,
+            read: false,
+            timestamp: new Date()
+          });
+        }
+      } catch (error) {
+        console.error('Error creating user order notification:', error);
+      }
+    }
+
     // Create notification for admin
     try {
       const { createOrderNotification } = require('./notificationController');
@@ -156,65 +209,6 @@ const createOrder = async (req, res) => {
       }, 'new_order');
     } catch (error) {
       console.error('Error creating order notification:', error);
-    }
-
-    // Create notification for user if logged in
-    try {
-      const Notification = require('../models/Notification');
-      if (order.user) {
-        await Notification.createNotification({
-          type: 'order',
-          title: 'Order Placed Successfully',
-          message: `Your order ${order.orderNumber} has been placed and is being processed`,
-          priority: 'medium',
-          userId: order.user,
-          orderId: order._id,
-          metadata: {
-            orderNumber: order.orderNumber,
-            totalAmount: order.finalAmount
-          }
-        });
-      }
-
-      // Send order confirmation email
-      try {
-        const emailService = require('../services/emailService');
-        const User = require('../models/User');
-        
-        // Get user email if user is logged in
-        if (order.user) {
-          const user = await User.findById(order.user).select('email name');
-          if (user && user.email) {
-            await emailService.sendOrderConfirmation(
-              user.email, 
-              {
-                orderNumber: order.orderNumber,
-                totalAmount: order.finalAmount,
-                status: order.orderStatus,
-                items: order.items,
-                estimatedDeliveryTime: order.estimatedDeliveryTime
-              }
-            );
-          }
-        } else if (order.customer && order.customer.email) {
-          // For guest orders, use customer email
-          await emailService.sendOrderConfirmation(
-            order.customer.email,
-            {
-              orderNumber: order.orderNumber,
-              totalAmount: order.finalAmount,
-              status: order.orderStatus,
-              items: order.items,
-              estimatedDeliveryTime: order.estimatedDeliveryTime
-            }
-          );
-        }
-      } catch (emailError) {
-        console.error('Error sending order confirmation email:', emailError);
-        // Don't fail the request if email fails
-      }
-    } catch (error) {
-      console.error('Error creating user order notification:', error);
     }
 
     // Emit real-time notification to admin
@@ -652,15 +646,38 @@ const updateOrderStatus = async (req, res) => {
       { new: true }
     ).populate('items.product', 'name');
 
-    // Create notification for customer
+    // Create notification for customer with status-specific messages
     try {
       const Notification = require('../models/Notification');
       if (updatedOrder.user) {
+        // Define status-specific messages
+        const statusMessages = {
+          'confirmed': 'Your order has been confirmed and is being prepared.',
+          'preparing': 'Your order is being prepared by our kitchen.',
+          'ready': 'Your order is ready for pickup/delivery.',
+          'out_for_delivery': 'Your order is out for delivery and will arrive soon.',
+          'delivered': 'Your order has been delivered successfully!',
+          'cancelled': 'Your order has been cancelled.'
+        };
+
+        const statusTitles = {
+          'confirmed': 'Order Confirmed',
+          'preparing': 'Order Being Prepared',
+          'ready': 'Order Ready',
+          'out_for_delivery': 'Out for Delivery',
+          'delivered': 'Order Delivered',
+          'cancelled': 'Order Cancelled'
+        };
+
+        const title = statusTitles[status] || 'Order Status Updated';
+        const message = statusMessages[status] || `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`;
+        const priority = status === 'delivered' || status === 'cancelled' ? 'high' : 'medium';
+
         await Notification.createNotification({
           type: 'order',
-          title: 'Order Status Updated',
-          message: `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`,
-          priority: 'medium',
+          title: title,
+          message: message,
+          priority: priority,
           userId: updatedOrder.user,
           orderId: updatedOrder._id,
           metadata: {
@@ -674,8 +691,8 @@ const updateOrderStatus = async (req, res) => {
           req.io.to(`user-${updatedOrder.user}`).emit('new-user-notification', {
             id: `order-${Date.now()}`,
             type: 'order',
-            title: 'Order Status Updated',
-            message: `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`,
+            title: title,
+            message: message,
             read: false,
             timestamp: new Date()
           });
@@ -691,9 +708,56 @@ const updateOrderStatus = async (req, res) => {
         if (updatedOrder.user) {
           const user = await User.findById(updatedOrder.user).select('email name');
           if (user && user.email) {
+            // Send special email for order confirmation
+            if (status === 'confirmed') {
+              await emailService.sendOrderConfirmation(
+                user.email,
+                {
+                  orderNumber: updatedOrder.orderNumber,
+                  customerName: user.name,
+                  orderDate: updatedOrder.createdAt,
+                  totalAmount: updatedOrder.finalAmount,
+                  items: updatedOrder.items,
+                  deliveryInfo: updatedOrder.deliveryInfo,
+                  paymentInfo: updatedOrder.paymentInfo
+                }
+              );
+              console.log(`✅ Order confirmation email sent to ${user.email}`);
+            } else {
+              // Send status update email for other statuses
+              await emailService.sendOrderStatusUpdateEmail(
+                user.email, 
+                user.name, 
+                {
+                  orderNumber: updatedOrder.orderNumber,
+                  status: status,
+                  estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime,
+                  items: updatedOrder.items,
+                  totalAmount: updatedOrder.finalAmount
+                }
+              );
+            }
+          }
+        } else if (updatedOrder.customer && updatedOrder.customer.email) {
+          // For guest orders, use customer email
+          if (status === 'confirmed') {
+            await emailService.sendOrderConfirmation(
+              updatedOrder.customer.email,
+              {
+                orderNumber: updatedOrder.orderNumber,
+                customerName: updatedOrder.customer.name,
+                orderDate: updatedOrder.createdAt,
+                totalAmount: updatedOrder.finalAmount,
+                items: updatedOrder.items,
+                deliveryInfo: updatedOrder.deliveryInfo,
+                paymentInfo: updatedOrder.paymentInfo
+              }
+            );
+            console.log(`✅ Order confirmation email sent to ${updatedOrder.customer.email}`);
+          } else {
             await emailService.sendOrderStatusUpdateEmail(
-              user.email, 
-              user.name, 
+              updatedOrder.customer.email,
+              updatedOrder.customer.name,
               {
                 orderNumber: updatedOrder.orderNumber,
                 status: status,
@@ -703,19 +767,6 @@ const updateOrderStatus = async (req, res) => {
               }
             );
           }
-        } else if (updatedOrder.customer && updatedOrder.customer.email) {
-          // For guest orders, use customer email
-          await emailService.sendOrderStatusUpdateEmail(
-            updatedOrder.customer.email,
-            updatedOrder.customer.name,
-            {
-              orderNumber: updatedOrder.orderNumber,
-              status: status,
-              estimatedDeliveryTime: updatedOrder.estimatedDeliveryTime,
-              items: updatedOrder.items,
-              totalAmount: updatedOrder.finalAmount
-            }
-          );
         }
       } catch (emailError) {
         console.error('Error sending order status update email:', emailError);
