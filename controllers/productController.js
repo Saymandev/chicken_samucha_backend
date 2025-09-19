@@ -633,19 +633,26 @@ const getRelatedProducts = async (req, res) => {
 // Get multiple products by IDs (for recently viewed)
 const getProductsByIds = async (req, res) => {
   try {
-    const { ids } = req.query;
+    // Express handles array parameters differently - check both 'ids' and 'ids[]'
+    let productIds = req.query.ids || req.query['ids[]'];
     
     console.log('🔍 getProductsByIds - Request query:', req.query);
-    console.log('🔍 getProductsByIds - IDs received:', ids);
-    console.log('🔍 getProductsByIds - IDs type:', typeof ids, 'Array?', Array.isArray(ids));
-    console.log('🔍 getProductsByIds - First ID:', ids[0], 'Type:', typeof ids[0]);
+    console.log('🔍 getProductsByIds - Raw ids:', req.query.ids);
+    console.log('🔍 getProductsByIds - Raw ids[]:', req.query['ids[]']);
+    console.log('🔍 getProductsByIds - IDs received:', productIds);
+    console.log('🔍 getProductsByIds - IDs type:', typeof productIds, 'Array?', Array.isArray(productIds));
     
     // Handle both array and string formats
-    let productIds = ids;
-    if (typeof ids === 'string') {
-      productIds = [ids];
-    } else if (!Array.isArray(ids)) {
+    if (typeof productIds === 'string') {
+      productIds = [productIds];
+    } else if (!Array.isArray(productIds)) {
       productIds = [];
+    }
+    
+    // Additional check: if we still don't have an array, try to extract from query string
+    if (productIds.length === 0 && req.query['ids[]']) {
+      productIds = Array.isArray(req.query['ids[]']) ? req.query['ids[]'] : [req.query['ids[]']];
+      console.log('🔍 getProductsByIds - Extracted from ids[]:', productIds);
     }
     
     console.log('🔍 getProductsByIds - Processed IDs:', productIds);
