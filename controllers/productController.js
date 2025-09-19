@@ -637,8 +637,20 @@ const getProductsByIds = async (req, res) => {
     
     console.log('🔍 getProductsByIds - Request query:', req.query);
     console.log('🔍 getProductsByIds - IDs received:', ids);
+    console.log('🔍 getProductsByIds - IDs type:', typeof ids, 'Array?', Array.isArray(ids));
+    console.log('🔍 getProductsByIds - First ID:', ids[0], 'Type:', typeof ids[0]);
     
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    // Handle both array and string formats
+    let productIds = ids;
+    if (typeof ids === 'string') {
+      productIds = [ids];
+    } else if (!Array.isArray(ids)) {
+      productIds = [];
+    }
+    
+    console.log('🔍 getProductsByIds - Processed IDs:', productIds);
+    
+    if (!productIds || productIds.length === 0) {
       console.log('❌ getProductsByIds - No valid IDs provided');
       return res.json({
         success: true,
@@ -646,10 +658,20 @@ const getProductsByIds = async (req, res) => {
       });
     }
 
-    console.log('📡 getProductsByIds - Searching for products with IDs:', ids);
+    console.log('📡 getProductsByIds - Searching for products with IDs:', productIds);
+    
+    // First, let's check if products exist without filters
+    const allProducts = await Product.find({
+      _id: { $in: productIds }
+    }).select('_id name isVisible isAvailable');
+    
+    console.log('🔍 getProductsByIds - All products with these IDs (no filters):', allProducts.length);
+    allProducts.forEach(p => {
+      console.log(`  - ${p._id}: ${p.name?.en} (visible: ${p.isVisible}, available: ${p.isAvailable})`);
+    });
     
     const products = await Product.find({
-      _id: { $in: ids },
+      _id: { $in: productIds },
       isVisible: true,
       isAvailable: true
     })
@@ -657,7 +679,7 @@ const getProductsByIds = async (req, res) => {
       .select('-__v')
       .sort({ createdAt: -1 });
 
-    console.log('✅ getProductsByIds - Found products:', products.length);
+    console.log('✅ getProductsByIds - Found products after filters:', products.length);
     console.log('📤 getProductsByIds - Product names:', products.map(p => p.name?.en));
 
     res.json({
