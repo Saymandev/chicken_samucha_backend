@@ -694,6 +694,7 @@ const updateOrderStatus = async (req, res) => {
     }
 
     // Emit real-time notification to user-specific room
+    console.log(`🔍 DEBUG: About to emit Socket.IO notification`);
     console.log(`🔍 DEBUG: updatedOrder.user = ${updatedOrder.user}, req.io = ${!!req.io}`);
     
     if (updatedOrder.user && req.io) {
@@ -721,6 +722,8 @@ const updateOrderStatus = async (req, res) => {
     } else {
       console.log(`⚠️ Cannot emit Socket.IO notification - user: ${updatedOrder.user}, io: ${!!req.io}`);
     }
+    
+    console.log(`🔍 DEBUG: Socket.IO emission section completed`);
 
     // Send email notification for order status update
     try {
@@ -817,6 +820,8 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    console.log(`🔍 DEBUG: Order status update function completed successfully`);
+    
     res.json({
       success: true,
       message: 'Order status updated successfully',
