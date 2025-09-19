@@ -7,6 +7,16 @@ exports.addToWishlist = async (req, res) => {
     const { productId } = req.params;
     const userId = req.user.id;
 
+    // Validate productId
+    if (!productId || productId === 'undefined' || productId === 'null') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product ID'
+      });
+    }
+
+    console.log('Adding to wishlist - productId:', productId, 'userId:', userId);
+
     // Check if product exists and is active
     const product = await Product.findById(productId);
     if (!product) {
