@@ -635,13 +635,19 @@ const getProductsByIds = async (req, res) => {
   try {
     const { ids } = req.query;
     
+    console.log('🔍 getProductsByIds - Request query:', req.query);
+    console.log('🔍 getProductsByIds - IDs received:', ids);
+    
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      console.log('❌ getProductsByIds - No valid IDs provided');
       return res.json({
         success: true,
         products: []
       });
     }
 
+    console.log('📡 getProductsByIds - Searching for products with IDs:', ids);
+    
     const products = await Product.find({
       _id: { $in: ids },
       isVisible: true,
@@ -651,13 +657,16 @@ const getProductsByIds = async (req, res) => {
       .select('-__v')
       .sort({ createdAt: -1 });
 
+    console.log('✅ getProductsByIds - Found products:', products.length);
+    console.log('📤 getProductsByIds - Product names:', products.map(p => p.name?.en));
+
     res.json({
       success: true,
       count: products.length,
       products
     });
   } catch (error) {
-    console.error('Get products by IDs error:', error);
+    console.error('❌ getProductsByIds - Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
