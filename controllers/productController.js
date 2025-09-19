@@ -58,6 +58,7 @@ const getProducts = async (req, res) => {
           // Prioritize most sold products
           query['analytics.purchaseCount'] = { $gt: 0 };
           sortOverride = { 'analytics.purchaseCount': -1 };
+          console.log('🔍 Best seller filter applied, query:', JSON.stringify(query));
           break;
         case 'offers':
           // Products with discount
@@ -92,6 +93,18 @@ const getProducts = async (req, res) => {
       .select('-__v');
 
     const total = await Product.countDocuments(query);
+
+    // Debug logging for best sellers
+    if (filter === 'best-seller') {
+      console.log('🔍 Best sellers found:', products.length, 'products');
+      products.forEach((product, index) => {
+        console.log(`Product ${index + 1}:`, {
+          name: product.name?.en,
+          purchaseCount: product.analytics?.purchaseCount,
+          id: product._id
+        });
+      });
+    }
 
     res.json({
       success: true,
