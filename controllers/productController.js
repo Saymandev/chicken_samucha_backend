@@ -670,16 +670,23 @@ const getProductsByIds = async (req, res) => {
       console.log(`  - ${p._id}: ${p.name?.en} (visible: ${p.isVisible}, available: ${p.isAvailable})`);
     });
     
-    const products = await Product.find({
-      _id: { $in: productIds },
-      isVisible: true,
-      isAvailable: true
+    // For Recently Viewed, return items regardless of availability/visibility
+    // so users can still see what they viewed, and the UI can badge status.
+    let products = await Product.find({
+      _id: { $in: productIds }
     })
       .populate('category', 'name slug')
-      .select('-__v')
-      .sort({ createdAt: -1 });
+      .select('-__v');
 
-    console.log('✅ getProductsByIds - Found products after filters:', products.length);
+    // Preserve input order of ids
+    const orderIndex = new Map(productIds.map((id) => [String(id), true]));
+    products = products.sort((a, b) => {
+      const ai = productIds.indexOf(String(a._id));
+      const bi = productIds.indexOf(String(b._id));
+      return ai - bi;
+    });
+
+    console.log('✅ getProductsByIds - Found products (no filters):', products.length);
     console.log('📤 getProductsByIds - Product names:', products.map(p => p.name?.en));
 
     res.json({
