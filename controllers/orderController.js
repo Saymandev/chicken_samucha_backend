@@ -610,6 +610,8 @@ const getOrder = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { status, notes, estimatedDeliveryTime } = req.body;
+    
+    console.log(`🔄 Order status update called: ${status} for order ${req.params.id}`);
 
     const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
     
@@ -643,6 +645,8 @@ const updateOrderStatus = async (req, res) => {
       updateData,
       { new: true }
     ).populate('items.product', 'name');
+
+    console.log(`✅ Order updated successfully. User ID: ${updatedOrder.user}, Status: ${updatedOrder.orderStatus}`);
 
     // Define status-specific messages
     const statusMessages = {
@@ -690,6 +694,8 @@ const updateOrderStatus = async (req, res) => {
     }
 
     // Emit real-time notification to user-specific room
+    console.log(`🔍 DEBUG: updatedOrder.user = ${updatedOrder.user}, req.io = ${!!req.io}`);
+    
     if (updatedOrder.user && req.io) {
       console.log(`🔔 Emitting Socket.IO notification to user-${updatedOrder.user} for status: ${status}`);
       
