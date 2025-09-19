@@ -630,10 +630,46 @@ const getRelatedProducts = async (req, res) => {
   }
 };
 
+// Get multiple products by IDs (for recently viewed)
+const getProductsByIds = async (req, res) => {
+  try {
+    const { ids } = req.query;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.json({
+        success: true,
+        products: []
+      });
+    }
+
+    const products = await Product.find({
+      _id: { $in: ids },
+      isVisible: true,
+      isAvailable: true
+    })
+      .populate('category', 'name slug')
+      .select('-__v')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: products.length,
+      products
+    });
+  } catch (error) {
+    console.error('Get products by IDs error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getFeaturedProducts,
   getProduct,
+  getProductsByIds,
   createProduct,
   updateProduct,
   deleteProduct,
