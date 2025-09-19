@@ -31,7 +31,7 @@ class EmailService {
     try {
       // Method 1: Try App Password first (easier and more reliable)
       if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
-        console.log('📧 Using App Password for email authentication');
+       
         return nodemailer.createTransport({
           service: 'gmail',
           auth: {
@@ -55,7 +55,7 @@ class EmailService {
         return null;
       }
 
-      console.log('📧 Using OAuth2 for email authentication');
+    
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {

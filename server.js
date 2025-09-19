@@ -255,9 +255,9 @@ io.on('connection', (socket) => {
 
   // User joins their personal notification room
   socket.on('join-user-room', (userId) => {
-    console.log(`🔌 User ${userId} joining room: user-${userId}`);
+   
     socket.join(`user-${userId}`);
-    console.log(`✅ User ${userId} successfully joined room`);
+    
   });
 
   // Admin joins the admin dashboard
