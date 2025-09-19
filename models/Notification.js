@@ -98,6 +98,8 @@ notificationSchema.statics.createNotification = async function(data) {
     
     // Emit real-time notification via Socket.IO
     if (global.io) {
+      console.log(`🔔 Notification model emitting Socket.IO notification for user: ${notification.userId}`);
+      
       // For admin notifications
       global.io.to('admin-dashboard').emit('new-notification', {
         id: notification._id,
@@ -110,6 +112,7 @@ notificationSchema.statics.createNotification = async function(data) {
       
       // For user notifications - emit to user-specific room
       if (notification.userId) {
+        console.log(`🔔 Emitting to user-${notification.userId} room`);
         global.io.to(`user-${notification.userId}`).emit('new-user-notification', {
           id: notification._id,
           type: notification.type,
@@ -118,7 +121,10 @@ notificationSchema.statics.createNotification = async function(data) {
           read: notification.read,
           timestamp: notification.createdAt
         });
+        console.log(`✅ Notification model Socket.IO emission completed`);
       }
+    } else {
+      console.log(`⚠️ global.io not available in Notification model`);
     }
     
     return notification;
