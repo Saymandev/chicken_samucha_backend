@@ -101,18 +101,13 @@ const getProducts = async (req, res) => {
         console.log(`Product ${index + 1}:`, {
           name: product.name?.en,
           purchaseCount: product.analytics?.purchaseCount,
+          analytics: product.analytics,
           id: product._id
         });
       });
     }
 
-    res.json({
-      success: true,
-      count: products.length,
-      total,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
-      products: products.map(product => ({
+    const mappedProducts = products.map(product => ({
         id: product._id,
         name: product.name,
         description: product.description,
@@ -131,8 +126,29 @@ const getProducts = async (req, res) => {
         nutritionalInfo: product.nutritionalInfo,
         minOrderQuantity: product.minOrderQuantity,
         maxOrderQuantity: product.maxOrderQuantity,
-        stock: product.stock
-      }))
+        stock: product.stock,
+        analytics: product.analytics
+      }));
+
+    // Debug logging for response
+    if (filter === 'best-seller') {
+      console.log('📤 Sending best sellers response:');
+      mappedProducts.forEach((product, index) => {
+        console.log(`Response Product ${index + 1}:`, {
+          name: product.name?.en,
+          analytics: product.analytics,
+          purchaseCount: product.analytics?.purchaseCount
+        });
+      });
+    }
+
+    res.json({
+      success: true,
+      count: products.length,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      products: mappedProducts
     });
   } catch (error) {
     console.error('Get products error:', error);
