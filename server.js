@@ -255,7 +255,7 @@ io.on('connection', (socket) => {
 
   // User joins their personal notification room
   socket.on('join-user-room', (userId) => {
-    console.log(`👤 User ${userId} joined notification room`);
+    
     socket.join(`user-${userId}`);
   });
 
@@ -330,7 +330,7 @@ io.on('connection', (socket) => {
 
   // Handle disconnect
   socket.on('disconnect', () => {
-    console.log('🔌 User disconnected from socket');
+    
   });
 });
 
@@ -360,18 +360,18 @@ process.on('unhandledRejection', (err, promise) => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM received. Shutting down gracefully...');
+ 
   server.close(() => {
-    console.log('✅ Process terminated');
+    
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`🏠 Frontend URL: ${process.env.FRONTEND_URL || 'https://chicken-samucha-frontend.vercel.app'}`);
-  console.log(`📊 Health check: https://chicken-samucha-backend.onrender.com/api/health`);
+  
+  
+  
   
   // Start server monitoring
   serverMonitor.startMonitoring();
@@ -381,10 +381,10 @@ server.listen(PORT, () => {
     const schedulerService = require('./services/schedulerService');
     schedulerService.start().catch(err => {
       console.error('Failed to start scheduler:', err);
-      console.log('Scheduler will be available for manual start via admin panel');
+     
     });
   } catch (error) {
     console.error('Failed to load scheduler service:', error);
-    console.log('Scheduler service will not be available');
+   
   }
 }); 

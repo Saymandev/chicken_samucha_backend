@@ -29,9 +29,21 @@ class EmailService {
 
   async createTransporter() {
     try {
-      // Check if OAuth is properly configured
+      // Method 1: Try App Password first (easier and more reliable)
+      if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
+        console.log('📧 Using App Password for email authentication');
+        return nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+          }
+        });
+      }
+      
+      // Method 2: Fallback to OAuth2
       if (!process.env.GOOGLE_REFRESH_TOKEN) {
-        console.warn('⚠️  GOOGLE_REFRESH_TOKEN not set. Email sending disabled.');
+        console.warn('⚠️  No email credentials found. Email sending disabled.');
         return null;
       }
 
@@ -43,6 +55,7 @@ class EmailService {
         return null;
       }
 
+      console.log('📧 Using OAuth2 for email authentication');
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -70,11 +83,7 @@ class EmailService {
       if (!transporter) {
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
         
-        console.log('=== EMAIL WOULD BE SENT ===');
-        console.log('To:', to);
-        console.log('Subject: Password Reset Request');
-        console.log('Reset URL:', resetUrl);
-        console.log('=========================');
+       
         
         return { messageId: 'dev-mode-no-email' };
       }
@@ -108,7 +117,7 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Password reset email sent:', result);
+     
       return result;
     } catch (error) {
       console.error('⚠️  Error sending password reset email:', error.message);
@@ -122,11 +131,7 @@ class EmailService {
       
       // If no transporter (OAuth not configured), log instead of sending
       if (!transporter) {
-        console.log('=== WELCOME EMAIL WOULD BE SENT ===');
-        console.log('To:', to);
-        console.log('Subject: Welcome to Our Platform!');
-        console.log('Name:', name);
-        console.log('================================');
+       
         
         return { messageId: 'dev-mode-no-email' };
       }
@@ -151,7 +156,7 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Welcome email sent:', result);
+      
       return result;
     } catch (error) {
       console.error('⚠️  Error sending welcome email:', error.message);
@@ -165,11 +170,7 @@ class EmailService {
       
       // If no transporter (OAuth not configured), log instead of sending
       if (!transporter) {
-        console.log('=== ORDER CONFIRMATION EMAIL WOULD BE SENT ===');
-        console.log('To:', to);
-        console.log('Order:', orderDetails.orderNumber);
-        console.log('Amount:', orderDetails.totalAmount);
-        console.log('=============================================');
+       
         
         return { messageId: 'dev-mode-no-email' };
       }
@@ -234,7 +235,7 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Order confirmation email sent:', result);
+      
       return result;
     } catch (error) {
       console.error('⚠️  Error sending order confirmation email:', error.message);
@@ -248,11 +249,7 @@ class EmailService {
       
       // If no transporter (OAuth not configured), log instead of sending
       if (!transporter) {
-        console.log('=== ORDER STATUS UPDATE EMAIL WOULD BE SENT ===');
-        console.log('To:', to);
-        console.log('Order:', orderDetails.orderNumber);
-        console.log('Status:', orderDetails.status);
-        console.log('===============================================');
+       
         
         return { messageId: 'dev-mode-no-email' };
       }
@@ -320,7 +317,7 @@ class EmailService {
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log('Order status update email sent:', result);
+      
       return result;
     } catch (error) {
       console.error('⚠️  Error sending order status update email:', error.message);

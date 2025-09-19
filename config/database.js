@@ -13,9 +13,7 @@ const connectDB = async () => {
       heartbeatFrequencyMS: 10000, // Send heartbeat every 10s
     });
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`📊 Database: ${conn.connection.name}`);
-    console.log(`🔗 Connection state: ${conn.connection.readyState === 1 ? 'Connected' : 'Connecting'}`);
+    
     
     // Handle connection events
     mongoose.connection.on('error', (err) => {
@@ -28,23 +26,23 @@ const connectDB = async () => {
     });
 
     mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB reconnected successfully');
+     
     });
 
     mongoose.connection.on('connecting', () => {
-      console.log('🔄 MongoDB connecting...');
+      
     });
 
     mongoose.connection.on('connected', () => {
-      console.log('✅ MongoDB connected');
+      
     });
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('📝 Closing MongoDB connection...');
+     
       try {
         await mongoose.connection.close();
-        console.log('✅ MongoDB connection closed gracefully.');
+        
       } catch (closeError) {
         console.error('❌ Error closing MongoDB connection:', closeError.message);
       }
@@ -52,10 +50,10 @@ const connectDB = async () => {
     });
     
     process.on('SIGTERM', async () => {
-      console.log('📝 SIGTERM received, closing MongoDB connection...');
+     
       try {
         await mongoose.connection.close();
-        console.log('✅ MongoDB connection closed on SIGTERM.');
+        
       } catch (closeError) {
         console.error('❌ Error closing MongoDB connection on SIGTERM:', closeError.message);
       }
@@ -73,12 +71,11 @@ const connectDB = async () => {
       console.error('   - Firewall blocking the connection');
     }
     
-    console.log('⚠️  Server will continue running without database connection');
-    console.log('🔄 Will attempt to reconnect in 5 seconds...');
+   
     
     // Retry connection after 5 seconds instead of crashing
     setTimeout(() => {
-      console.log('🔄 Retrying database connection...');
+      
       connectDB();
     }, 5000);
   }

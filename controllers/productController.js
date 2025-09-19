@@ -58,7 +58,7 @@ const getProducts = async (req, res) => {
           // Prioritize most sold products
           query['analytics.purchaseCount'] = { $gt: 0 };
           sortOverride = { 'analytics.purchaseCount': -1 };
-          console.log('🔍 Best seller filter applied, query:', JSON.stringify(query));
+          
           break;
         case 'offers':
           // Products with discount
@@ -96,14 +96,9 @@ const getProducts = async (req, res) => {
 
     // Debug logging for best sellers
     if (filter === 'best-seller') {
-      console.log('🔍 Best sellers found:', products.length, 'products');
+      
       products.forEach((product, index) => {
-        console.log(`Product ${index + 1}:`, {
-          name: product.name?.en,
-          purchaseCount: product.analytics?.purchaseCount,
-          analytics: product.analytics,
-          id: product._id
-        });
+        
       });
     }
 
@@ -132,13 +127,9 @@ const getProducts = async (req, res) => {
 
     // Debug logging for response
     if (filter === 'best-seller') {
-      console.log('📤 Sending best sellers response:');
+      
       mappedProducts.forEach((product, index) => {
-        console.log(`Response Product ${index + 1}:`, {
-          name: product.name?.en,
-          analytics: product.analytics,
-          purchaseCount: product.analytics?.purchaseCount
-        });
+       
       });
     }
 
@@ -636,12 +627,8 @@ const getProductsByIds = async (req, res) => {
     // Accept IDs from body (POST) or query (GET), handling ids and ids[] formats
     let productIds = (req.body && req.body.ids) || req.query.ids || req.query['ids[]'];
 
-    console.log('🔍 getProductsByIds - Request query:', req.query);
-    console.log('🔍 getProductsByIds - Request body:', req.body);
-    console.log('🔍 getProductsByIds - Raw ids:', req.query.ids);
-    console.log('🔍 getProductsByIds - Raw ids[]:', req.query['ids[]']);
-    console.log('🔍 getProductsByIds - IDs received:', productIds);
-    console.log('🔍 getProductsByIds - IDs type:', typeof productIds, 'Array?', Array.isArray(productIds));
+    
+    
 
     // Normalize into array: support JSON string, comma-separated string, single value, or array
     if (typeof productIds === 'string') {
@@ -659,32 +646,31 @@ const getProductsByIds = async (req, res) => {
     if (productIds.length === 0 && (req.query['ids[]'] || (req.body && req.body['ids[]']))) {
       const raw = req.query['ids[]'] || (req.body && req.body['ids[]']);
       productIds = Array.isArray(raw) ? raw : [raw];
-      console.log('🔍 getProductsByIds - Extracted from ids[]:', productIds);
+      
     }
 
     // Dedupe and stringify
     productIds = [...new Set(productIds.map(String))];
     
-    console.log('🔍 getProductsByIds - Processed IDs:', productIds);
+    
     
     if (!productIds || productIds.length === 0) {
-      console.log('❌ getProductsByIds - No valid IDs provided');
+     
       return res.json({
         success: true,
         products: []
       });
     }
 
-    console.log('📡 getProductsByIds - Searching for products with IDs:', productIds);
     
     // First, let's check if products exist without filters
     const allProducts = await Product.find({
       _id: { $in: productIds }
     }).select('_id name isVisible isAvailable');
     
-    console.log('🔍 getProductsByIds - All products with these IDs (no filters):', allProducts.length);
+   
     allProducts.forEach(p => {
-      console.log(`  - ${p._id}: ${p.name?.en} (visible: ${p.isVisible}, available: ${p.isAvailable})`);
+      
     });
     
     // For Recently Viewed, return items regardless of availability/visibility
@@ -703,8 +689,8 @@ const getProductsByIds = async (req, res) => {
       return ai - bi;
     });
 
-    console.log('✅ getProductsByIds - Found products (no filters):', products.length);
-    console.log('📤 getProductsByIds - Product names:', products.map(p => p.name?.en));
+   
+    
 
     res.json({
       success: true,

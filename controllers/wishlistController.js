@@ -15,19 +15,19 @@ exports.addToWishlist = async (req, res) => {
       });
     }
 
-    console.log('Adding to wishlist - productId:', productId, 'userId:', userId);
+    
 
     // Check if product exists and is active
     const product = await Product.findById(productId);
     if (!product) {
-      console.log(`Product not found: ${productId}`);
+      
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
 
-    console.log(`Product found: ${product.name}, isAvailable: ${product.isAvailable}, stock: ${product.stock}`);
+    
     
     if (!product.isAvailable) {
       return res.status(400).json({

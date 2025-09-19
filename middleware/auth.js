@@ -12,7 +12,7 @@ const protect = async (req, res, next) => {
 
   // Make sure token exists
   if (!token) {
-    console.log('❌ No token provided for protected route:', req.path);
+    
     return res.status(401).json({
       success: false,
       message: 'Not authorized to access this route'
@@ -22,12 +22,12 @@ const protect = async (req, res, next) => {
   try {
     // Verify token
     const decoded = jwt.verify(token, config.JWT_SECRET);
-    console.log('🔍 Token decoded for user ID:', decoded.id);
+    
 
     req.user = await User.findById(decoded.id).select('-password');
     
     if (!req.user) {
-      console.log('❌ User not found for ID:', decoded.id);
+      
       return res.status(401).json({
         success: false,
         message: 'User not found'
@@ -35,17 +35,17 @@ const protect = async (req, res, next) => {
     }
 
     if (!req.user.isActive) {
-      console.log('❌ User account deactivated for ID:', decoded.id);
+    
       return res.status(401).json({
         success: false,
         message: 'User account is deactivated'
       });
     }
 
-    console.log('✅ User authenticated:', req.user.name, '(ID:', req.user._id + ')');
+   
     next();
   } catch (err) {
-    console.log('❌ Token verification failed:', err.message);
+    
     
     // Provide more specific error messages
     let message = 'Not authorized to access this route';

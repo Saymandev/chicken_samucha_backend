@@ -51,13 +51,13 @@ class ServerMonitor {
         console.warn(`⚠️  HIGH MEMORY USAGE: ${heapUsedMB}MB`);
         
         if (global.gc) {
-          console.log('🧹 Running garbage collection...');
+          
           global.gc();
         }
       }
     }, 10 * 60 * 1000);
 
-    console.log('📊 Server monitoring started');
+   
   }
 
   middleware() {

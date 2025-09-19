@@ -156,7 +156,7 @@ const createOrder = async (req, res) => {
         deliveryInfo: order.deliveryInfo,
         paymentInfo: order.paymentInfo
       });
-      console.log(`✅ Order confirmation email sent to ${order.customer.email}`);
+      
     } catch (error) {
       console.error('❌ Error sending order confirmation email:', error);
     }
@@ -266,7 +266,7 @@ const createOrder = async (req, res) => {
 // Get user's orders
 const getMyOrders = async (req, res) => {
   try {
-    console.log('🔍 GetMyOrders called for user:', req.user?.id);
+   
     
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
@@ -284,7 +284,7 @@ const getMyOrders = async (req, res) => {
       query.orderStatus = status;
     }
 
-    console.log('🔍 Orders query:', query);
+   
 
     const orders = await Order.find(query)
       .populate('items.product', 'name images price')
@@ -296,7 +296,7 @@ const getMyOrders = async (req, res) => {
 
     const total = await Order.countDocuments(query);
 
-    console.log(`✅ Found ${orders.length} orders for user ${req.user.id}`);
+   
 
     // Transform orders to match frontend expectations
     const transformedOrders = orders.map(order => ({
@@ -670,7 +670,7 @@ const updateOrderStatus = async (req, res) => {
         const message = statusMessages[status] || `Your order ${updatedOrder.orderNumber} is now ${status.replace('_', ' ')}`;
         const priority = status === 'delivered' || status === 'cancelled' ? 'high' : 'medium';
 
-        console.log('📝 Creating notification for user:', updatedOrder.user);
+        
         await Notification.createNotification({
           type: 'order',
           title: title,
@@ -683,11 +683,11 @@ const updateOrderStatus = async (req, res) => {
             newStatus: status
           }
         });
-        console.log('✅ Notification created successfully');
+        
         
         // Emit real-time notification to user-specific room
         if (req.io) {
-          console.log('📡 Emitting real-time notification to user:', updatedOrder.user);
+          
           req.io.to(`user-${updatedOrder.user}`).emit('new-user-notification', {
             id: `order-${Date.now()}`,
             type: 'order',
@@ -696,9 +696,9 @@ const updateOrderStatus = async (req, res) => {
             read: false,
             timestamp: new Date()
           });
-          console.log('✅ Real-time notification emitted');
+          
         } else {
-          console.log('❌ No Socket.IO instance available');
+          
         }
       }
 
@@ -706,17 +706,17 @@ const updateOrderStatus = async (req, res) => {
       try {
         const User = require('../models/User');
         
-        console.log('📧 Attempting to send email for status update:', status);
+        
         
         // Get user email if user is logged in
         if (updatedOrder.user) {
           const user = await User.findById(updatedOrder.user).select('email name');
-          console.log('👤 Found user for email:', user?.email);
+         
           
           if (user && user.email) {
             // Send special email for order confirmation
             if (status === 'confirmed') {
-              console.log('📧 Sending order confirmation email...');
+             
               await emailService.sendOrderConfirmation(
                 user.email,
                 {
@@ -729,9 +729,9 @@ const updateOrderStatus = async (req, res) => {
                   paymentInfo: updatedOrder.paymentInfo
                 }
               );
-              console.log(`✅ Order confirmation email sent to ${user.email}`);
+              
             } else {
-              console.log('📧 Sending status update email...');
+              
               // Send status update email for other statuses
               await emailService.sendOrderStatusUpdateEmail(
                 user.email, 
@@ -744,16 +744,16 @@ const updateOrderStatus = async (req, res) => {
                   totalAmount: updatedOrder.finalAmount
                 }
               );
-              console.log(`✅ Status update email sent to ${user.email}`);
+             
             }
           } else {
-            console.log('❌ No user email found');
+            
           }
         } else if (updatedOrder.customer && updatedOrder.customer.email) {
-          console.log('👤 Using guest customer email:', updatedOrder.customer.email);
+         
           // For guest orders, use customer email
           if (status === 'confirmed') {
-            console.log('📧 Sending order confirmation email to guest...');
+           
             await emailService.sendOrderConfirmation(
               updatedOrder.customer.email,
               {
@@ -766,9 +766,9 @@ const updateOrderStatus = async (req, res) => {
                 paymentInfo: updatedOrder.paymentInfo
               }
             );
-            console.log(`✅ Order confirmation email sent to ${updatedOrder.customer.email}`);
+            
           } else {
-            console.log('📧 Sending status update email to guest...');
+           
             await emailService.sendOrderStatusUpdateEmail(
               updatedOrder.customer.email,
               updatedOrder.customer.name,
@@ -780,10 +780,10 @@ const updateOrderStatus = async (req, res) => {
                 totalAmount: updatedOrder.finalAmount
               }
             );
-            console.log(`✅ Status update email sent to ${updatedOrder.customer.email}`);
+           
           }
         } else {
-          console.log('❌ No user or customer email found for order');
+         
         }
       } catch (emailError) {
         console.error('❌ Error sending order status update email:', emailError);

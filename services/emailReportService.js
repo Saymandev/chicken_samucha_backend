@@ -16,21 +16,21 @@ class EmailReportService {
       // Method 1: Using App Password (Easier and more reliable)
       if (process.env.GMAIL_APP_PASSWORD && process.env.GMAIL_USER) {
         await this.setupAppPassword();
-        console.log('Email service initialized with App Password');
+       
       }
       // Method 2: Using OAuth2 (More complex but more secure)
       else if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
         await this.setupOAuth2();
-        console.log('Email service initialized with OAuth2');
+       
       }
       // Method 3: Using Service Account
       else if (fs.existsSync(path.join(__dirname, '../google-credentials.json'))) {
         await this.setupServiceAccount();
-        console.log('Email service initialized with Service Account');
+        
       }
       else {
-        console.log('No email credentials found. Email service disabled.');
-        console.log('To enable email reports, set up Google OAuth2 or App Password credentials.');
+        
+        
       }
     } catch (error) {
       console.error('Failed to initialize email service:', error);
@@ -64,7 +64,7 @@ class EmailReportService {
         }
       });
       
-      console.log('OAuth2 transporter created successfully');
+     
     } catch (error) {
       console.error('OAuth2 setup failed:', error.message);
       throw error;
@@ -479,7 +479,7 @@ class EmailReportService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      console.log(`${reportType} report sent successfully:`, result.messageId);
+      
       return result;
     } catch (error) {
       console.error(`Failed to send ${reportType} report:`, error);

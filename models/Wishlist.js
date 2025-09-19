@@ -92,7 +92,7 @@ wishlistSchema.statics.getUserWishlist = async function(userId, page = 1, limit 
     // Filter out items where product is null (deleted products)
     const validItems = wishlistItems.filter(item => item.product !== null);
     
-    console.log(`Found ${wishlistItems.length} wishlist items, ${validItems.length} valid items`);
+   
 
     const total = await this.countDocuments({ user: userId });
 

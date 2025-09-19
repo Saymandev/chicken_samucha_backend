@@ -17,17 +17,17 @@ class SchedulerService {
 
   async start() {
     if (!cron) {
-      console.log('node-cron not available. Scheduler cannot start.');
+     
       return;
     }
 
     if (this.isRunning) {
-      console.log('Scheduler is already running');
+     
       return;
     }
 
     try {
-      console.log('Starting automated report scheduler...');
+      
       this.isRunning = true;
 
       // Daily report at 9:00 AM
@@ -39,7 +39,7 @@ class SchedulerService {
       // Monthly report on 1st of every month at 11:00 AM
       this.scheduleMonthlyReport();
 
-      console.log('Scheduler started successfully');
+     
     } catch (error) {
       console.error('Failed to start scheduler:', error);
       this.isRunning = false;
@@ -54,12 +54,12 @@ class SchedulerService {
       }
 
       if (!this.isRunning) {
-        console.log('Scheduler is not running. Nothing to stop.');
+        
         return;
       }
 
       if (this.jobs.size === 0) {
-        console.log('No jobs to stop.');
+        
         this.isRunning = false;
         return;
       }
@@ -68,7 +68,7 @@ class SchedulerService {
         try {
           if (job && typeof job.destroy === 'function') {
             job.destroy();
-            console.log(`Stopped job: ${name}`);
+          
           } else {
             console.warn(`Job ${name} is not a valid cron job`);
           }
@@ -79,7 +79,7 @@ class SchedulerService {
       
       this.jobs.clear();
       this.isRunning = false;
-      console.log('Scheduler stopped successfully');
+     
     } catch (error) {
       console.error('Error stopping scheduler:', error);
       throw error;
@@ -95,17 +95,17 @@ class SchedulerService {
     try {
       const job = cron.schedule('0 9 * * *', async () => {
         try {
-          console.log('Generating daily report...');
+         
           const adminEmails = await this.getAdminEmails();
           
           if (adminEmails.length > 0) {
             await emailReportService.sendDailyReport(adminEmails);
-            console.log('Daily report sent successfully');
+          
           } else {
-            console.log('No admin emails found for daily report');
+            
           }
         } catch (error) {
-          console.error('Failed to send daily report:', error);
+         
         }
       }, {
         scheduled: false,
@@ -118,7 +118,7 @@ class SchedulerService {
 
       this.jobs.set('daily', job);
       job.start();
-      console.log('Daily report scheduled for 9:00 AM (Asia/Dhaka timezone)');
+     
     } catch (error) {
       console.error('Error scheduling daily report:', error);
       throw error;
@@ -130,14 +130,14 @@ class SchedulerService {
     
     const job = cron.schedule('0 10 * * 1', async () => {
       try {
-        console.log('Generating weekly report...');
+        
         const adminEmails = await this.getAdminEmails();
         
         if (adminEmails.length > 0) {
           await emailReportService.sendWeeklyReport(adminEmails);
-          console.log('Weekly report sent successfully');
+         
         } else {
-          console.log('No admin emails found for weekly report');
+        
         }
       } catch (error) {
         console.error('Failed to send weekly report:', error);
@@ -149,7 +149,7 @@ class SchedulerService {
 
     this.jobs.set('weekly', job);
     job.start();
-    console.log('Weekly report scheduled for Monday 10:00 AM (Asia/Dhaka timezone)');
+   
   }
 
   scheduleMonthlyReport() {
@@ -157,14 +157,14 @@ class SchedulerService {
     
     const job = cron.schedule('0 11 1 * *', async () => {
       try {
-        console.log('Generating monthly report...');
+       
         const adminEmails = await this.getAdminEmails();
         
         if (adminEmails.length > 0) {
           await emailReportService.sendMonthlyReport(adminEmails);
-          console.log('Monthly report sent successfully');
+         
         } else {
-          console.log('No admin emails found for monthly report');
+          
         }
       } catch (error) {
         console.error('Failed to send monthly report:', error);
@@ -176,7 +176,7 @@ class SchedulerService {
 
     this.jobs.set('monthly', job);
     job.start();
-    console.log('Monthly report scheduled for 1st of every month 11:00 AM (Asia/Dhaka timezone)');
+   
   }
 
   async getAdminEmails() {
@@ -196,7 +196,7 @@ class SchedulerService {
         throw new Error('Email service not initialized. Please check your email credentials.');
       }
       await emailReportService.sendDailyReport(recipients);
-      console.log('Daily report sent manually');
+    
     } catch (error) {
       console.error('Failed to send daily report manually:', error);
       throw error;
@@ -209,7 +209,7 @@ class SchedulerService {
         throw new Error('Email service not initialized. Please check your email credentials.');
       }
       await emailReportService.sendWeeklyReport(recipients);
-      console.log('Weekly report sent manually');
+    
     } catch (error) {
       console.error('Failed to send weekly report manually:', error);
       throw error;
@@ -222,7 +222,7 @@ class SchedulerService {
         throw new Error('Email service not initialized. Please check your email credentials.');
       }
       await emailReportService.sendMonthlyReport(recipients);
-      console.log('Monthly report sent manually');
+    
     } catch (error) {
       console.error('Failed to send monthly report manually:', error);
       throw error;
@@ -289,7 +289,7 @@ class SchedulerService {
               await emailReportService.sendMonthlyReport(adminEmails);
               break;
           }
-          console.log(`${jobName} report sent successfully`);
+       
         }
       } catch (error) {
         console.error(`Failed to send ${jobName} report:`, error);
@@ -301,7 +301,7 @@ class SchedulerService {
 
     this.jobs.set(jobName, job);
     job.start();
-    console.log(`${jobName} report rescheduled`);
+    
   }
 }
 
