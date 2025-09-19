@@ -17,5 +17,13 @@ module.exports = {
   
   // Admin credentials
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@samosa.com',
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123456'
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123456',
+  
+  // Email Configuration
+  GMAIL_USER: process.env.GMAIL_USER,
+  GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN
 }; 

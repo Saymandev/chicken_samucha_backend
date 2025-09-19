@@ -1,6 +1,9 @@
 // Test script to verify email and Socket.IO notifications
 // Run this with: node test-notifications.js
 
+// Load environment variables
+require('dotenv').config();
+
 const emailService = require('./services/emailService');
 
 async function testEmailNotifications() {
