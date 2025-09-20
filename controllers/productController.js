@@ -41,17 +41,13 @@ const getProducts = async (req, res) => {
       const categoryDoc = await Category.findOne({ slug: category }).populate('parentCategory');
       if (categoryDoc) {
         // If it's a subcategory (and not pointing to itself), show ONLY subcategory products
-        if (categoryDoc.isSubcategory && categoryDoc.parentCategory && categoryDoc.parentCategory.toString() !== categoryDoc._id.toString()) {
+        if (categoryDoc.isSubcategory && categoryDoc.parentCategory && categoryDoc.parentCategory._id.toString() !== categoryDoc._id.toString()) {
           query.category = categoryDoc._id;
           
         } else {
           // If it's a parent category, show parent category AND all its subcategories
           const subcategories = await Category.find({ parentCategory: categoryDoc._id });
-          
-          
-          
           const categoryIds = [categoryDoc._id, ...subcategories.map(sub => sub._id)];
-          
           
           query.category = {
             $in: categoryIds
@@ -173,7 +169,6 @@ const getProducts = async (req, res) => {
       .skip((page - 1) * limit)
       .select('-__v');
     
-   
     }
 
     const total = await Product.countDocuments(query);
