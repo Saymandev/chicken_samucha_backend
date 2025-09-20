@@ -36,12 +36,24 @@ const createRefundRequest = async (req, res) => {
       });
     }
 
-    // Check if refund already exists
-    const existingRefund = await Refund.findOne({ order: order._id });
+    // Check if refund already exists (more comprehensive check)
+    const existingRefund = await Refund.findOne({ 
+      $or: [
+        { order: order._id },
+        { orderNumber: order.orderNumber, customer: req.user.id }
+      ]
+    });
+    
     if (existingRefund) {
       return res.status(400).json({
         success: false,
-        message: 'Refund request already exists for this order'
+        message: 'Refund request already exists for this order',
+        existingRefund: {
+          id: existingRefund._id,
+          status: existingRefund.status,
+          createdAt: existingRefund.createdAt,
+          amount: existingRefund.amount
+        }
       });
     }
 

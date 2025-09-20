@@ -278,11 +278,20 @@ const getMyOrders = async (req, res) => {
       });
     }
 
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, search } = req.query;
 
     const query = { user: req.user.id };
     if (status && status !== 'all') {
       query.orderStatus = status;
+    }
+    
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { orderNumber: { $regex: search, $options: 'i' } },
+        { 'customer.name': { $regex: search, $options: 'i' } },
+        { 'customer.phone': { $regex: search, $options: 'i' } }
+      ];
     }
 
    
