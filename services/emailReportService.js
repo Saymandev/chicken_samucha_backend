@@ -318,136 +318,192 @@ class EmailReportService {
 
     let html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${reportType} Business Report</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
-            .content { padding: 30px; }
-            .metric-card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; border-left: 4px solid #ff6b35; }
-            .metric-value { font-size: 2em; font-weight: bold; color: #ff6b35; margin: 10px 0; }
-            .metric-label { color: #666; font-size: 0.9em; }
-            .comparison { display: flex; justify-content: space-between; margin: 20px 0; }
-            .comparison-item { flex: 1; text-align: center; padding: 15px; margin: 0 10px; background: #f8f9fa; border-radius: 8px; }
-            .product-list { margin: 20px 0; }
-            .product-item { display: flex; justify-content: space-between; padding: 10px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; }
-            .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
-            .status-item { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-            .footer { text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; }
-            .trend-up { color: #28a745; }
-            .trend-down { color: #dc3545; }
-        </style>
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🍗 ${reportType} Business Report</h1>
-                <p>Chicken Samosa Business Analytics</p>
-                <p>Generated on ${new Date().toLocaleString()}</p>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff;">
+            
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 40px; text-align: center; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grain\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"><circle cx=\"50\" cy=\"50\" r=\"1\" fill=\"rgba(255,255,255,0.1)\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grain)\"/></svg>'); opacity: 0.1;"></div>
+                
+                <div style="position: relative; z-index: 1;">
+                    <div style="display: inline-block; background: rgba(255,255,255,0.2); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; backdrop-filter: blur(10px);">
+                        <span style="color: #ffffff; font-size: 36px;">📊</span>
+                    </div>
+                    
+                    <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        ${reportType} Business Report
+                    </h1>
+                    <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">
+                        🍗 Chicken Samucha Analytics
+                    </p>
+                    <p style="color: #ffffff; margin: 15px 0 0 0; font-size: 14px; opacity: 0.8;">
+                        Generated on ${new Date().toLocaleString()}
+                    </p>
+                </div>
             </div>
-            <div class="content">
+
+            <!-- Main Content -->
+            <div style="padding: 40px;">
     `;
 
     if (reportType === 'Daily') {
       const { yesterday, today, topProducts, orderStatus } = reportData;
       
       html += `
-                <h2>📊 Yesterday's Performance</h2>
-                <div class="metric-card">
-                    <div class="metric-value">${formatCurrency(yesterday.totalRevenue)}</div>
-                    <div class="metric-label">Total Revenue</div>
-                </div>
-                
-                <div class="comparison">
-                    <div class="comparison-item">
-                        <h3>Yesterday</h3>
-                        <div class="metric-value">${yesterday.totalOrders}</div>
-                        <div class="metric-label">Orders</div>
+                <!-- Key Metrics -->
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                    <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 25px 0; display: flex; align-items: center;">
+                        <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 12px;">💰</span>
+                        Yesterday's Performance
+                    </h2>
+                    
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);">
+                        <div style="color: #ffffff; font-size: 36px; font-weight: 800; margin-bottom: 8px;">${formatCurrency(yesterday.totalRevenue)}</div>
+                        <div style="color: #ffffff; font-size: 16px; font-weight: 500; opacity: 0.9;">Total Revenue</div>
                     </div>
-                    <div class="comparison-item">
-                        <h3>Today (So Far)</h3>
-                        <div class="metric-value">${today.totalOrders}</div>
-                        <div class="metric-label">Orders</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: #ffffff; border-radius: 12px; padding: 25px; text-align: center; border: 1px solid #e5e7eb;">
+                            <h3 style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">Yesterday</h3>
+                            <div style="color: #1f2937; font-size: 28px; font-weight: 700; margin-bottom: 5px;">${yesterday.totalOrders}</div>
+                            <div style="color: #6b7280; font-size: 14px; font-weight: 500;">Orders</div>
+                        </div>
+                        <div style="background: #ffffff; border-radius: 12px; padding: 25px; text-align: center; border: 1px solid #e5e7eb;">
+                            <h3 style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">Today (So Far)</h3>
+                            <div style="color: #1f2937; font-size: 28px; font-weight: 700; margin-bottom: 5px;">${today.totalOrders}</div>
+                            <div style="color: #6b7280; font-size: 14px; font-weight: 500;">Orders</div>
+                        </div>
                     </div>
                 </div>
 
-                <h3>🏆 Top Products Yesterday</h3>
-                <div class="product-list">
+                <!-- Top Products -->
+                <div style="background: #ffffff; border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h3 style="color: #1f2937; font-size: 20px; font-weight: 700; margin: 0 0 25px 0; display: flex; align-items: center;">
+                        <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px;">🏆</span>
+                        Top Products Yesterday
+                    </h3>
+                    
+                    <div style="space-y: 12px;">
       `;
       
       topProducts.forEach((product, index) => {
         html += `
-                    <div class="product-item">
-                        <span>${index + 1}. ${product.product.name.en}</span>
-                        <span><strong>${formatCurrency(product.totalRevenue)}</strong> (${product.totalQuantity} sold)</span>
-                    </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 12px;">${index + 1}</span>
+                                <span style="color: #1f2937; font-size: 16px; font-weight: 600;">${product.product.name.en}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="color: #059669; font-size: 16px; font-weight: 700;">${formatCurrency(product.totalRevenue)}</div>
+                                <div style="color: #6b7280; font-size: 14px; font-weight: 500;">${product.totalQuantity} sold</div>
+                            </div>
+                        </div>
         `;
       });
       
       html += `
+                    </div>
                 </div>
 
-                <h3>📈 Order Status Distribution</h3>
-                <div class="status-grid">
+                <!-- Order Status -->
+                <div style="background: #ffffff; border-radius: 16px; padding: 30px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h3 style="color: #1f2937; font-size: 20px; font-weight: 700; margin: 0 0 25px 0; display: flex; align-items: center;">
+                        <span style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px;">📈</span>
+                        Order Status Distribution
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
       `;
       
       orderStatus.forEach(status => {
         html += `
-                    <div class="status-item">
-                        <div class="metric-value">${status.count}</div>
-                        <div class="metric-label">${status._id.replace('_', ' ')}</div>
-                    </div>
+                        <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #e5e7eb;">
+                            <div style="color: #1f2937; font-size: 24px; font-weight: 700; margin-bottom: 8px;">${status.count}</div>
+                            <div style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: capitalize;">${status._id.replace('_', ' ')}</div>
+                        </div>
         `;
       });
       
-      html += `</div>`;
+      html += `
+                    </div>
+                </div>
+      `;
     } else if (reportType === 'Weekly' || reportType === 'Monthly') {
       const { totals, dailyData } = reportData;
       
       html += `
-                <h2>📊 ${reportType} Summary</h2>
-                <div class="metric-card">
-                    <div class="metric-value">${formatCurrency(totals.totalRevenue)}</div>
-                    <div class="metric-label">Total Revenue</div>
-                </div>
-                
-                <div class="comparison">
-                    <div class="comparison-item">
-                        <div class="metric-value">${totals.totalOrders}</div>
-                        <div class="metric-label">Total Orders</div>
+                <!-- Summary Metrics -->
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                    <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 25px 0; display: flex; align-items: center;">
+                        <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 12px;">📊</span>
+                        ${reportType} Summary
+                    </h2>
+                    
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);">
+                        <div style="color: #ffffff; font-size: 36px; font-weight: 800; margin-bottom: 8px;">${formatCurrency(totals.totalRevenue)}</div>
+                        <div style="color: #ffffff; font-size: 16px; font-weight: 500; opacity: 0.9;">Total Revenue</div>
                     </div>
-                    <div class="comparison-item">
-                        <div class="metric-value">${formatCurrency(totals.averageOrderValue)}</div>
-                        <div class="metric-label">Avg Order Value</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: #ffffff; border-radius: 12px; padding: 25px; text-align: center; border: 1px solid #e5e7eb;">
+                            <h3 style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">Total Orders</h3>
+                            <div style="color: #1f2937; font-size: 28px; font-weight: 700; margin-bottom: 5px;">${totals.totalOrders}</div>
+                        </div>
+                        <div style="background: #ffffff; border-radius: 12px; padding: 25px; text-align: center; border: 1px solid #e5e7eb;">
+                            <h3 style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">Avg Order Value</h3>
+                            <div style="color: #1f2937; font-size: 28px; font-weight: 700; margin-bottom: 5px;">${formatCurrency(totals.averageOrderValue)}</div>
+                        </div>
                     </div>
                 </div>
 
-                <h3>📈 Daily Performance</h3>
-                <div class="product-list">
+                <!-- Daily Performance -->
+                <div style="background: #ffffff; border-radius: 16px; padding: 30px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h3 style="color: #1f2937; font-size: 20px; font-weight: 700; margin: 0 0 25px 0; display: flex; align-items: center;">
+                        <span style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px;">📈</span>
+                        Daily Performance
+                    </h3>
+                    
+                    <div style="space-y: 12px;">
       `;
       
       dailyData.forEach(day => {
         const date = new Date(day._id.year, day._id.month - 1, day._id.day);
         html += `
-                    <div class="product-item">
-                        <span>${date.toLocaleDateString()}</span>
-                        <span><strong>${formatCurrency(day.revenue)}</strong> (${day.orders} orders)</span>
-                    </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
+                            <div style="color: #1f2937; font-size: 16px; font-weight: 600;">${date.toLocaleDateString()}</div>
+                            <div style="text-align: right;">
+                                <div style="color: #059669; font-size: 16px; font-weight: 700;">${formatCurrency(day.revenue)}</div>
+                                <div style="color: #6b7280; font-size: 14px; font-weight: 500;">${day.orders} orders</div>
+                            </div>
+                        </div>
         `;
       });
       
-      html += `</div>`;
+      html += `
+                    </div>
+                </div>
+      `;
     }
 
     html += `
             </div>
-            <div class="footer">
-                <p>This is an automated report generated by your business management system.</p>
-                <p>For questions or support, contact your system administrator.</p>
+
+            <!-- Footer -->
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="color: #6b7280; font-size: 16px; margin: 0 0 10px 0; font-weight: 500;">
+                    📊 Automated Business Intelligence Report
+                </p>
+                <p style="color: #9ca3af; font-size: 14px; margin: 0;">
+                    Generated by Chicken Samucha Management System
+                </p>
             </div>
+
         </div>
     </body>
     </html>
@@ -465,9 +521,9 @@ class EmailReportService {
       const html = this.generateHTMLReport(reportData, reportType);
       
       const mailOptions = {
-        from: `"Chicken Samosa Business" <${process.env.GMAIL_USER}>`,
+        from: `"Chicken Samucha Analytics" <${process.env.GMAIL_USER}>`,
         to: recipients.join(', '),
-        subject: `🍗 ${reportType} Business Report - ${new Date().toLocaleDateString()}`,
+        subject: `📊 ${reportType} Business Intelligence Report - ${new Date().toLocaleDateString()}`,
         html: html,
         attachments: [
           {

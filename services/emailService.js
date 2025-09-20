@@ -177,10 +177,10 @@ class EmailService {
 
       // Generate items list HTML
       const itemsHtml = orderDetails.items.map(item => `
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">৳${item.price}</td>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${item.product.name}</td>
+          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${item.quantity}</td>
+          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${item.price}</td>
         </tr>
       `).join('');
       
@@ -189,48 +189,126 @@ class EmailService {
         to: to,
         subject: `Order Confirmation - ${orderDetails.orderNumber}`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
-            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #333; margin-bottom: 20px;">Order Confirmed! 🎉</h2>
-              <p>Thank you for your order! We've received it and it's being processed.</p>
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Confirmation</title>
+          </head>
+          <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
               
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
-                <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
-                <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
-                <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
-                <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">${orderDetails.status ? orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending'}</span></p>
-                ${orderDetails.estimatedDeliveryTime ? `<p><strong>Estimated Delivery:</strong> ${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>` : ''}
-              </div>
-
-              <div style="margin: 20px 0;">
-                <h4 style="color: #333;">Order Items:</h4>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                  <thead>
-                    <tr style="background-color: #f8f9fa;">
-                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Item</th>
-                      <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Quantity</th>
-                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${itemsHtml}
-                  </tbody>
-                </table>
-              </div>
-
-              <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0; color: #2d5a2d;">
-                  <strong>What's Next?</strong><br>
-                  We'll notify you via email and in-app notifications when your order status changes. 
-                  You can track your order progress in real-time!
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 30px 40px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  🍗 Chicken Samucha
+                </h1>
+                <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
+                  Authentic Bangladeshi Cuisine
                 </p>
               </div>
 
-              <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Thank you for choosing us! If you have any questions, please don't hesitate to contact us.
-              </p>
+              <!-- Main Content -->
+              <div style="padding: 40px;">
+                
+                <!-- Success Icon -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
+                    <span style="color: #ffffff; font-size: 36px;">✓</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; text-align: center; margin: 0 0 15px 0;">
+                  Order Confirmed!
+                </h2>
+                
+                <p style="color: #6b7280; font-size: 16px; text-align: center; margin: 0 0 35px 0; line-height: 1.6;">
+                  Thank you for choosing us! Your order has been received and is being prepared with care.
+                </p>
+
+                <!-- Order Details Card -->
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                  <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0 0 20px 0; display: flex; align-items: center;">
+                    <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">📋</span>
+                    Order Details
+                  </h3>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Order Number</p>
+                      <p style="color: #1f2937; font-size: 16px; font-weight: 600; margin: 0;">${orderDetails.orderNumber}</p>
+                    </div>
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Total Amount</p>
+                      <p style="color: #059669; font-size: 18px; font-weight: 700; margin: 0;">৳${orderDetails.totalAmount}</p>
+                    </div>
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Status</p>
+                      <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                        ${orderDetails.status ? orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending'}
+                      </span>
+                    </div>
+                    ${orderDetails.estimatedDeliveryTime ? `
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Estimated Delivery</p>
+                      <p style="color: #1f2937; font-size: 14px; font-weight: 500; margin: 0;">${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>
+                    </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <!-- Order Items -->
+                <div style="margin-bottom: 30px;">
+                  <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0 0 20px 0; display: flex; align-items: center;">
+                    <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">🍽️</span>
+                    Order Items
+                  </h3>
+                  
+                  <div style="background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                      <thead>
+                        <tr style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+                          <th style="padding: 15px 20px; text-align: left; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Item</th>
+                          <th style="padding: 15px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Qty</th>
+                          <th style="padding: 15px 20px; text-align: right; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${itemsHtml}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- What's Next -->
+                <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 25px; border-left: 4px solid #10b981;">
+                  <h3 style="color: #065f46; font-size: 16px; font-weight: 600; margin: 0 0 10px 0; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">📱</span>
+                    What's Next?
+                  </h3>
+                  <p style="color: #047857; font-size: 14px; margin: 0; line-height: 1.6;">
+                    We'll notify you via email and real-time notifications when your order status changes. 
+                    You can track your order progress instantly!
+                  </p>
+                </div>
+
+              </div>
+
+              <!-- Footer -->
+              <div style="background: #f8fafc; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 15px 0;">
+                  Thank you for choosing Chicken Samucha!
+                </p>
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                  If you have any questions, please don't hesitate to contact us.
+                </p>
+              </div>
+
             </div>
-          </div>
+          </body>
+          </html>
         `,
       };
 
@@ -259,10 +337,10 @@ class EmailService {
       
       // Generate items list HTML
       const itemsHtml = orderDetails.items.map(item => `
-        <tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.name}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">৳${item.price}</td>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${item.product.name}</td>
+          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${item.quantity}</td>
+          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${item.price}</td>
         </tr>
       `).join('');
 
@@ -271,48 +349,124 @@ class EmailService {
         to: to,
         subject: `Order Status Update - ${orderDetails.orderNumber}`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
-            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #333; margin-bottom: 20px;">Order Status Update</h2>
-              <p>Hello ${customerName},</p>
-              <p>Your order status has been updated:</p>
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Delivered</title>
+          </head>
+          <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
               
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #007bff;">
-                <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
-                <p><strong>Order Number:</strong> ${orderDetails.orderNumber}</p>
-                <p><strong>New Status:</strong> <span style="color: #007bff; font-weight: bold;">${statusDisplay}</span></p>
-                <p><strong>Total Amount:</strong> ৳${orderDetails.totalAmount}</p>
-                ${orderDetails.estimatedDeliveryTime ? `<p><strong>Estimated Delivery:</strong> ${new Date(orderDetails.estimatedDeliveryTime).toLocaleString()}</p>` : ''}
-              </div>
-
-              <div style="margin: 20px 0;">
-                <h4 style="color: #333;">Order Items:</h4>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                  <thead>
-                    <tr style="background-color: #f8f9fa;">
-                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Item</th>
-                      <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Quantity</th>
-                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${itemsHtml}
-                  </tbody>
-                </table>
-              </div>
-
-              <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0; color: #2d5a2d;">
-                  <strong>What's Next?</strong><br>
-                  ${this.getStatusMessage(orderDetails.status)}
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 40px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  🍗 Chicken Samucha
+                </h1>
+                <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
+                  Authentic Bangladeshi Cuisine
                 </p>
               </div>
 
-              <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Thank you for choosing us! If you have any questions, please don't hesitate to contact us.
-              </p>
+              <!-- Main Content -->
+              <div style="padding: 40px;">
+                
+                <!-- Delivery Icon -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
+                    <span style="color: #ffffff; font-size: 36px;">🚚</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; text-align: center; margin: 0 0 15px 0;">
+                  Order Delivered! 🎉
+                </h2>
+                
+                <p style="color: #6b7280; font-size: 16px; text-align: center; margin: 0 0 35px 0; line-height: 1.6;">
+                  Hello ${customerName}, your order has been successfully delivered. We hope you enjoy your meal!
+                </p>
+
+                <!-- Order Details Card -->
+                <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                  <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0 0 20px 0; display: flex; align-items: center;">
+                    <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">📋</span>
+                    Order Details
+                  </h3>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Order Number</p>
+                      <p style="color: #1f2937; font-size: 16px; font-weight: 600; margin: 0;">${orderDetails.orderNumber}</p>
+                    </div>
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Total Amount</p>
+                      <p style="color: #059669; font-size: 18px; font-weight: 700; margin: 0;">৳${orderDetails.totalAmount}</p>
+                    </div>
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Status</p>
+                      <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                        ${statusDisplay}
+                      </span>
+                    </div>
+                    <div>
+                      <p style="color: #6b7280; font-size: 14px; margin: 0 0 5px 0; font-weight: 500;">Delivery Time</p>
+                      <p style="color: #1f2937; font-size: 14px; font-weight: 500; margin: 0;">${new Date().toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Order Items -->
+                <div style="margin-bottom: 30px;">
+                  <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0 0 20px 0; display: flex; align-items: center;">
+                    <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px;">🍽️</span>
+                    Order Items
+                  </h3>
+                  
+                  <div style="background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                      <thead>
+                        <tr style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+                          <th style="padding: 15px 20px; text-align: left; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Item</th>
+                          <th style="padding: 15px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Qty</th>
+                          <th style="padding: 15px 20px; text-align: right; font-size: 14px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${itemsHtml}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Thank You Message -->
+                <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 25px; border-left: 4px solid #10b981;">
+                  <h3 style="color: #065f46; font-size: 16px; font-weight: 600; margin: 0 0 10px 0; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">🙏</span>
+                    Thank You!
+                  </h3>
+                  <p style="color: #047857; font-size: 14px; margin: 0; line-height: 1.6;">
+                    We hope you enjoyed your meal! Your feedback is valuable to us. 
+                    Thank you for choosing Chicken Samucha for your dining experience.
+                  </p>
+                </div>
+
+              </div>
+
+              <!-- Footer -->
+              <div style="background: #f8fafc; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 15px 0;">
+                  Thank you for choosing Chicken Samucha!
+                </p>
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                  If you have any questions, please don't hesitate to contact us.
+                </p>
+              </div>
+
             </div>
-          </div>
+          </body>
+          </html>
         `,
       };
 
