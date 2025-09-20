@@ -310,6 +310,27 @@ exports.updateOrderStatus = async (req, res) => {
     if (status === 'delivered') updateData['deliveryInfo.deliveredAt'] = new Date();
     if (status === 'cancelled') updateData.cancelReason = 'Cancelled by admin';
 
+    // If confirming order, validate product stock
+    if (status === 'confirmed' && order.orderStatus === 'pending') {
+      const Product = require('../models/Product');
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (!product) {
+          return res.status(400).json({
+            success: false,
+            message: `Product not found: ${item.name}`
+          });
+        }
+        
+        if (product.stock < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient stock for ${item.name}. Available: ${product.stock}, Required: ${item.quantity}`
+          });
+        }
+      }
+    }
+
     // If cancelling order, restore product stock
     if (status === 'cancelled' && order.orderStatus !== 'cancelled') {
       const Product = require('../models/Product');
@@ -371,6 +392,25 @@ exports.verifyPayment = async (req, res) => {
     
     // Auto-confirm order when payment is verified
     if (order.orderStatus === 'pending') {
+      // Validate product stock before confirming
+      const Product = require('../models/Product');
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (!product) {
+          return res.status(400).json({
+            success: false,
+            message: `Product not found: ${item.name}`
+          });
+        }
+        
+        if (product.stock < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient stock for ${item.name}. Available: ${product.stock}, Required: ${item.quantity}`
+          });
+        }
+      }
+      
       order.set('orderStatus', 'confirmed');
     }
     

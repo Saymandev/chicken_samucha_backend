@@ -701,6 +701,25 @@ const verifyPayment = async (req, res) => {
 
     // Auto-confirm order if payment is verified
     if (status === 'verified') {
+      // Validate product stock before confirming
+      const Product = require('../models/Product');
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (!product) {
+          return res.status(400).json({
+            success: false,
+            message: `Product not found: ${item.name}`
+          });
+        }
+        
+        if (product.stock < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient stock for ${item.name}. Available: ${product.stock}, Required: ${item.quantity}`
+          });
+        }
+      }
+      
       updateData.orderStatus = 'confirmed';
     }
 

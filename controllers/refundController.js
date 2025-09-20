@@ -20,7 +20,7 @@ const createRefundRequest = async (req, res) => {
     const { orderNumber, reason, description, refundMethod, refundDetails } = req.body;
 
     // Find the order
-    const order = await Order.findOne({ orderNumber, customer: req.user.id });
+    const order = await Order.findOne({ orderNumber, user: req.user.id });
     if (!order) {
       return res.status(404).json({
         success: false,
