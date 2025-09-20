@@ -28,6 +28,8 @@ const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const chatRoutes = require('./routes/chat');
 const contactRoutes = require('./routes/contact');
+const promotionRoutes = require('./routes/promotions');
+const publicPromotionRoutes = require('./routes/publicPromotions');
 const paymentRoutes = require('./routes/payments');
 const couponRoutes = require('./routes/coupons');
 const categoryRoutes = require('./routes/category');
@@ -177,6 +179,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/admin/promotions', promotionRoutes);
+app.use('/api/promotions', publicPromotionRoutes);
 
 // OAuth setup routes (only in development)
 if (process.env.NODE_ENV === 'development') {
