@@ -40,19 +40,18 @@ const getProducts = async (req, res) => {
       const Category = require('../models/Category');
       const categoryDoc = await Category.findOne({ slug: category }).populate('parentCategory');
       if (categoryDoc) {
-        // If it's a subcategory, show ONLY subcategory products
-        if (categoryDoc.isSubcategory && categoryDoc.parentCategory) {
+        // If it's a subcategory (and not pointing to itself), show ONLY subcategory products
+        if (categoryDoc.isSubcategory && categoryDoc.parentCategory && categoryDoc.parentCategory.toString() !== categoryDoc._id.toString()) {
           query.category = categoryDoc._id;
           
         } else {
           // If it's a parent category, show parent category AND all its subcategories
           const subcategories = await Category.find({ parentCategory: categoryDoc._id });
-          console.log(`📁 Parent category: ${categoryDoc.name}`);
-          console.log(`📂 Found subcategories: ${subcategories.length}`);
-          subcategories.forEach(sub => console.log(`  - ${sub.name}`));
+          
+          
           
           const categoryIds = [categoryDoc._id, ...subcategories.map(sub => sub._id)];
-          console.log(`🔍 Category IDs to search: ${categoryIds.length} total`);
+          
           
           query.category = {
             $in: categoryIds
@@ -164,7 +163,7 @@ const getProducts = async (req, res) => {
       
       const aggregationResult = await Product.aggregate(aggregationPipeline);
       products = aggregationResult;
-      console.log(`🔍 Subcategory products prioritized: ${products.filter(p => p.category._id.toString() === categorySortField.toString()).length} subcategory, ${products.filter(p => p.category._id.toString() !== categorySortField.toString()).length} parent category`);
+      
     } else {
     // Regular query for parent categories or no category filter
     products = await Product.find(query)
@@ -174,10 +173,7 @@ const getProducts = async (req, res) => {
       .skip((page - 1) * limit)
       .select('-__v');
     
-    console.log(`📦 Found ${products.length} products`);
-    products.forEach(product => {
-      console.log(`  - ${product.name} (category: ${product.category?.name})`);
-    });
+   
     }
 
     const total = await Product.countDocuments(query);
