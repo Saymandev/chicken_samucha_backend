@@ -131,6 +131,11 @@ exports.createPromotion = async (req, res) => {
 
     const promotion = await Promotion.create(promotionData);
 
+    // Emit Socket.IO event for real-time updates
+    if (global.emitPromotionUpdate) {
+      global.emitPromotionUpdate(promotion, 'created');
+    }
+
     res.status(201).json({
       success: true,
       message: 'Promotion created successfully',
@@ -263,6 +268,11 @@ exports.togglePromotionStatus = async (req, res) => {
 
     promotion.isActive = !promotion.isActive;
     await promotion.save();
+
+    // Emit Socket.IO event for real-time updates
+    if (global.emitPromotionUpdate) {
+      global.emitPromotionUpdate(promotion, promotion.isActive ? 'activated' : 'deactivated');
+    }
 
     res.json({
       success: true,

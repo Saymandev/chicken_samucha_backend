@@ -61,6 +61,18 @@ const io = socketio(server, {
 // Make io globally accessible for notifications
 global.io = io;
 
+// Promotion update functions
+global.emitPromotionUpdate = (promotion, action) => {
+  if (io) {
+    io.to('promotion-updates').emit('promotion-updated', {
+      promotion,
+      action, // 'created', 'updated', 'deleted', 'activated', 'deactivated'
+      timestamp: new Date().toISOString()
+    });
+    console.log(`📢 Promotion ${action}: ${promotion.title?.en || promotion.title?.bn || 'Unknown'}`);
+  }
+};
+
 // Middleware to attach io to requests
 app.use((req, res, next) => {
   req.io = io;
@@ -331,6 +343,17 @@ io.on('connection', (socket) => {
     
     // Notify admin dashboard
     io.to('admin-dashboard').emit('chat-session-updated', data);
+  });
+
+  // Handle promotion events
+  socket.on('join-promotion-room', () => {
+    socket.join('promotion-updates');
+    console.log('📢 User joined promotion room');
+  });
+
+  socket.on('leave-promotion-room', () => {
+    socket.leave('promotion-updates');
+    console.log('📢 User left promotion room');
   });
 
   // Handle disconnect
