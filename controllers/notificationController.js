@@ -16,8 +16,18 @@ exports.getNotifications = async (req, res) => {
       category
     } = req.query;
 
-    // Build query
-    const query = {};
+    // Build query - Only show admin-specific notifications
+    const query = {
+      // Only show notifications that are meant for admin dashboard
+      $or: [
+        { userId: { $exists: false } }, // No user ID = admin notification
+        { type: 'system' },
+        { category: 'payment_processing' },
+        { title: { $regex: /New Order|Payment Verification/i } }
+      ]
+    };
+    
+    // Apply additional filters
     if (type) query.type = type;
     if (priority) query.priority = priority;
     if (read !== undefined) query.read = read === 'true';
@@ -39,8 +49,16 @@ exports.getNotifications = async (req, res) => {
     const total = await Notification.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
-    // Get unread count
-    const unreadCount = await Notification.countDocuments({ read: false });
+    // Get unread count for admin notifications only
+    const unreadCount = await Notification.countDocuments({ 
+      read: false,
+      $or: [
+        { userId: { $exists: false } },
+        { type: 'system' },
+        { category: 'payment_processing' },
+        { title: { $regex: /New Order|Payment Verification/i } }
+      ]
+    });
 
     // Transform notifications for frontend
     const transformedNotifications = notifications.map(notification => ({
@@ -167,7 +185,16 @@ exports.markAsRead = async (req, res) => {
 exports.markAllAsRead = async (req, res) => {
   try {
     const result = await Notification.updateMany(
-      { read: false },
+      { 
+        read: false,
+        // Only mark admin notifications as read
+        $or: [
+          { userId: { $exists: false } },
+          { type: 'system' },
+          { category: 'payment_processing' },
+          { title: { $regex: /New Order|Payment Verification/i } }
+        ]
+      },
       { 
         read: true, 
         readAt: new Date(),

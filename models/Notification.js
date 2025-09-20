@@ -103,19 +103,28 @@ notificationSchema.statics.createNotification = async function(data) {
     
     // Emit real-time notification via Socket.IO
     if (global.io) {
-      // Always emit to admin dashboard
-      global.io.to('admin-dashboard').emit('new-notification', {
-        id: notification._id,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        priority: notification.priority,
-        createdAt: notification.createdAt
-      });
+      // Only emit to admin dashboard for admin-specific notifications
+      // Admin notifications: system alerts, payment verification requests, new orders
+      const isAdminNotification = !notification.userId || 
+                                  notification.type === 'system' || 
+                                  notification.category === 'payment_processing' ||
+                                  notification.title.includes('New Order') ||
+                                  notification.title.includes('Payment Verification');
+      
+      if (isAdminNotification) {
+        global.io.to('admin-dashboard').emit('new-notification', {
+          id: notification._id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          priority: notification.priority,
+          createdAt: notification.createdAt
+        });
+        console.log(`🔔 Admin notification sent: ${notification.title}`);
+      }
       
       // For user notifications - emit to user-specific room only if userId exists
       if (notification.userId) {
-        
         global.io.to(`user-${notification.userId}`).emit('new-user-notification', {
           id: notification._id,
           type: notification.type,
@@ -124,12 +133,10 @@ notificationSchema.statics.createNotification = async function(data) {
           read: notification.read,
           timestamp: notification.createdAt
         });
-       
-      } else {
-        
+        console.log(`🔔 User notification sent to user-${notification.userId}: ${notification.title}`);
       }
     } else {
-      
+      console.log('🔔 Socket.IO not available for notifications');
     }
     
     return notification;
