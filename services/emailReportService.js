@@ -328,10 +328,8 @@ class EmailReportService {
         <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff;">
             
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 40px; text-align: center; position: relative; overflow: hidden;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grain\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"><circle cx=\"50\" cy=\"50\" r=\"1\" fill=\"rgba(255,255,255,0.1)\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grain)\"/></svg>'); opacity: 0.1;"></div>
-                
-                <div style="position: relative; z-index: 1;">
+            <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 40px; text-align: center;">
+                <div>
                     <div style="display: inline-block; background: rgba(255,255,255,0.2); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; backdrop-filter: blur(10px);">
                         <span style="color: #ffffff; font-size: 36px;">📊</span>
                     </div>
