@@ -51,20 +51,26 @@ router.get('/products', async (req, res) => {
       ];
     }
 
-    // Category filter
+    // Category filter - use category ID instead of name
     if (category && category !== 'all') {
-      query.$or = [
-        { 'category.en': { $regex: category, $options: 'i' } },
-        { 'category.bn': { $regex: category, $options: 'i' } }
-      ];
+      query.category = category;
     }
 
     const Product = require('../models/Product');
     
+    // Parse sort parameter
+    let sortOptions = {};
+    if (sort.startsWith('-')) {
+      sortOptions[sort.substring(1)] = -1;
+    } else {
+      sortOptions[sort] = 1;
+    }
+    
     const products = await Product.find(query)
-      .sort(sort)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
+      .populate('category', 'name slug')
+      .sort(sortOptions)
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
       .select('-__v');
 
     const total = await Product.countDocuments(query);
@@ -74,7 +80,7 @@ router.get('/products', async (req, res) => {
       products,
       pagination: {
         page: parseInt(page),
-        pages: Math.ceil(total / limit),
+        pages: Math.ceil(total / parseInt(limit)),
         total
       }
     });

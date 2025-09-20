@@ -47,10 +47,11 @@ const createCoupon = async (req, res) => {
 // Get all coupons (Admin only)
 const getAllCoupons = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status = 'all' } = req.query;
+    const { page = 1, limit = 10, status = 'all', search } = req.query;
     
     let query = {};
     
+    // Status filter
     if (status === 'active') {
       query.isActive = true;
       query.validUntil = { $gte: new Date() };
@@ -58,6 +59,17 @@ const getAllCoupons = async (req, res) => {
       query.validUntil = { $lt: new Date() };
     } else if (status === 'inactive') {
       query.isActive = false;
+    }
+    
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { code: { $regex: search, $options: 'i' } },
+        { 'name.en': { $regex: search, $options: 'i' } },
+        { 'name.bn': { $regex: search, $options: 'i' } },
+        { 'description.en': { $regex: search, $options: 'i' } },
+        { 'description.bn': { $regex: search, $options: 'i' } }
+      ];
     }
 
     const coupons = await Coupon.find(query)

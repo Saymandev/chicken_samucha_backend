@@ -228,8 +228,20 @@ exports.getAllOrders = async (req, res) => {
     const { page = 1, limit = 10, search, status, paymentMethod, sort = '-createdAt' } = req.query;
     const query = {};
     
-    if (status) query.status = status;
+    // Status filter - use orderStatus field
+    if (status) query.orderStatus = status;
+    
+    // Payment method filter
     if (paymentMethod) query['paymentInfo.method'] = paymentMethod;
+    
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { orderNumber: { $regex: search, $options: 'i' } },
+        { 'customer.name': { $regex: search, $options: 'i' } },
+        { 'customer.phone': { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const orders = await Order.find(query)
       .populate('customer', 'name phone email')
@@ -248,9 +260,11 @@ exports.getAllOrders = async (req, res) => {
     res.json({
       success: true,
       orders,
+      totalPages: Math.ceil(total / limit),
       pagination: { page: parseInt(page), pages: Math.ceil(total / limit), total }
     });
   } catch (error) {
+    console.error('Get all orders error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch orders' });
   }
 };
@@ -261,8 +275,20 @@ exports.getAllUsers = async (req, res) => {
     const { page = 1, limit = 10, search, role, isActive, sort = '-createdAt' } = req.query;
     const query = {};
     
+    // Role filter
     if (role) query.role = role;
+    
+    // Status filter
     if (isActive !== undefined) query.isActive = isActive === 'true';
+    
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const users = await User.find(query)
       .select('-password')
@@ -279,6 +305,7 @@ exports.getAllUsers = async (req, res) => {
       pagination: { page: parseInt(page), pages: Math.ceil(total / limit), total }
     });
   } catch (error) {
+    console.error('Get all users error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch users' });
   }
 };
