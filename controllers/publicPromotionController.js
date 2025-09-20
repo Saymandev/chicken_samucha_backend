@@ -45,7 +45,7 @@ exports.getActivePromotions = async (req, res) => {
     const promotions = await Promotion.find(query)
       .sort({ priority: -1, createdAt: -1 })
       .limit(parseInt(limit))
-      .select('title description shortDescription image bannerImage type discountType discountValue validUntil displayFrequency ctaButton metadata');
+      .select('title description shortDescription image bannerImage type discountType discountValue validUntil displayFrequency ctaButton displayRules priority targetAudience metadata');
 
     // Add time remaining to each promotion
     const promotionsWithTimeRemaining = promotions.map(promotion => ({
