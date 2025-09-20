@@ -308,6 +308,17 @@ exports.updateOrderStatus = async (req, res) => {
     if (notes) updateData.adminNotes = notes;
     if (estimatedDeliveryTime) updateData.estimatedDeliveryTime = new Date(estimatedDeliveryTime);
     if (status === 'delivered') updateData['deliveryInfo.deliveredAt'] = new Date();
+    if (status === 'cancelled') updateData.cancelReason = 'Cancelled by admin';
+
+    // If cancelling order, restore product stock
+    if (status === 'cancelled' && order.orderStatus !== 'cancelled') {
+      const Product = require('../models/Product');
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: item.quantity }
+        });
+      }
+    }
 
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId, 
