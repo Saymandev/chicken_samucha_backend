@@ -233,6 +233,11 @@ exports.getAllOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('customer', 'name phone email')
+      .populate({
+        path: 'refunds',
+        select: 'status amount reason createdAt',
+        options: { sort: { createdAt: -1 } }
+      })
       .sort(sort)
       .limit(limit * 1)
       .skip((page - 1) * limit)

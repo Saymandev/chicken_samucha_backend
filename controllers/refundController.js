@@ -60,6 +60,11 @@ const createRefundRequest = async (req, res) => {
       refundDetails
     });
 
+    // Add refund to order's refunds array
+    await Order.findByIdAndUpdate(order._id, {
+      $push: { refunds: refund._id }
+    });
+
     // Emit notification to admin
     if (req.io) {
       req.io.to('admin-dashboard').emit('new-refund-request', {
@@ -68,6 +73,17 @@ const createRefundRequest = async (req, res) => {
         customer: req.user.name,
         amount: refundAmount,
         reason,
+        createdAt: refund.createdAt
+      });
+    }
+
+    // Emit notification to user
+    if (req.io) {
+      req.io.to(`user-${req.user.id}`).emit('refund-request-created', {
+        refundId: refund._id,
+        orderNumber: order.orderNumber,
+        amount: refundAmount,
+        status: 'pending',
         createdAt: refund.createdAt
       });
     }

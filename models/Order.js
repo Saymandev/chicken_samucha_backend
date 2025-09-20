@@ -178,7 +178,11 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['not_applicable', 'pending', 'processed', 'failed'],
     default: 'not_applicable'
-  }
+  },
+  refunds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Refund'
+  }]
 }, {
   timestamps: true
 });

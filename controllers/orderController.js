@@ -290,6 +290,7 @@ const getMyOrders = async (req, res) => {
     const orders = await Order.find(query)
       .populate('items.product', 'name images price')
       .populate('user', 'name email phone') // Add user population for additional context
+      .populate('refunds', 'status') // Populate refunds to check if refund exists
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -327,6 +328,7 @@ const getMyOrders = async (req, res) => {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       estimatedDeliveryTime: order.estimatedDeliveryTime,
+      hasRefundRequest: order.refunds && order.refunds.length > 0,
       customer: {
         name: order.customer?.name || order.user?.name || 'Unknown Customer',
         phone: order.customer?.phone || order.user?.phone || 'No phone',
