@@ -40,17 +40,18 @@ const getProducts = async (req, res) => {
       const Category = require('../models/Category');
       const categoryDoc = await Category.findOne({ slug: category }).populate('parentCategory');
       if (categoryDoc) {
-        // If it's a subcategory, include both subcategory and parent category products
+        // If it's a subcategory, show ONLY subcategory products
         if (categoryDoc.isSubcategory && categoryDoc.parentCategory) {
-          query.category = {
-            $in: [categoryDoc._id, categoryDoc.parentCategory._id]
-          };
-          // Store the subcategory ID for sorting
-          categorySortField = categoryDoc._id;
+          query.category = categoryDoc._id;
           
         } else {
-          // If it's a parent category, only show products from that category
-          query.category = categoryDoc._id;
+          // If it's a parent category, show parent category AND all its subcategories
+          const subcategories = await Category.find({ parentCategory: categoryDoc._id });
+          const categoryIds = [categoryDoc._id, ...subcategories.map(sub => sub._id)];
+          
+          query.category = {
+            $in: categoryIds
+          };
           
         }
       }
