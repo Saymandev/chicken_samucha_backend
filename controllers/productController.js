@@ -33,7 +33,8 @@ const getProducts = async (req, res) => {
       ];
     }
 
-    // Category filter
+    // Category filter and sorting
+    let categorySortField = null;
     if (category) {
       // First find the category by slug
       const Category = require('../models/Category');
@@ -42,13 +43,15 @@ const getProducts = async (req, res) => {
         // If it's a subcategory, include both subcategory and parent category products
         if (categoryDoc.isSubcategory && categoryDoc.parentCategory) {
           query.category = {
-            $in: [categoryDoc._id, categoryDoc.parentCategory]
+            $in: [categoryDoc._id, categoryDoc.parentCategory._id]
           };
-          console.log(`🔍 Including products from subcategory: ${categoryDoc.name.en} and parent category`);
+          // Store the subcategory ID for sorting
+          categorySortField = categoryDoc._id;
+          
         } else {
           // If it's a parent category, only show products from that category
           query.category = categoryDoc._id;
-          console.log(`🔍 Showing products from parent category: ${categoryDoc.name.en}`);
+          
         }
       }
     }
@@ -94,13 +97,77 @@ const getProducts = async (req, res) => {
     } else {
       sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
     }
-
-    const products = await Product.find(query)
-      .populate('category', 'name slug')
-      .sort(sortOptions)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('-__v');
+    
+    let products;
+    
+    // If we're filtering by a subcategory, use aggregation to prioritize subcategory products
+    if (categorySortField) {
+      const aggregationPipeline = [
+        { $match: query },
+        { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo' } },
+        { $unwind: '$categoryInfo' },
+        {
+          $addFields: {
+            categoryPriority: {
+              $cond: {
+                if: { $eq: ['$category', categorySortField] },
+                then: 0, // Subcategory products get priority 0 (first)
+                else: 1  // Parent category products get priority 1 (second)
+              }
+            }
+          }
+        },
+        {
+          $sort: {
+            categoryPriority: 1, // Sort by priority first (0 before 1)
+            [sortBy]: sortOrder === 'desc' ? -1 : 1 // Then by the original sort criteria
+          }
+        },
+        { $skip: (page - 1) * limit },
+        { $limit: limit * 1 },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            description: 1,
+            shortDescription: 1,
+            price: 1,
+            discountPrice: 1,
+            images: 1,
+            ingredients: 1,
+            preparationTime: 1,
+            servingSize: 1,
+            isFeatured: 1,
+            isAvailable: 1,
+            stock: 1,
+            ratings: 1,
+            minOrderQuantity: 1,
+            maxOrderQuantity: 1,
+            youtubeVideoUrl: 1,
+            analytics: 1,
+            displayOrder: 1,
+            createdAt: 1,
+            category: {
+              _id: '$categoryInfo._id',
+              name: '$categoryInfo.name',
+              slug: '$categoryInfo.slug'
+            }
+          }
+        }
+      ];
+      
+      const aggregationResult = await Product.aggregate(aggregationPipeline);
+      products = aggregationResult;
+      console.log(`🔍 Subcategory products prioritized: ${products.filter(p => p.category._id.toString() === categorySortField.toString()).length} subcategory, ${products.filter(p => p.category._id.toString() !== categorySortField.toString()).length} parent category`);
+    } else {
+      // Regular query for parent categories or no category filter
+      products = await Product.find(query)
+        .populate('category', 'name slug')
+        .sort(sortOptions)
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .select('-__v');
+    }
 
     const total = await Product.countDocuments(query);
 
