@@ -31,9 +31,24 @@ const sliderImageStorage = createStorage('slider');
 const reviewImageStorage = createStorage('reviews');
 const paymentScreenshotStorage = createStorage('payments');
 const chatAttachmentStorage = createStorage('chat', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']);
+const promotionImageStorage = createStorage('promotions');
 
 // Multer configurations
 const upload = {
+  // General upload for multiple fields (like promotions)
+  fields: (fields) => multer({
+    storage: promotionImageStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'), false);
+      }
+    }
+  }).fields(fields),
   productImages: multer({
     storage: productImageStorage,
     limits: {
