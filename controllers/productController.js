@@ -37,9 +37,19 @@ const getProducts = async (req, res) => {
     if (category) {
       // First find the category by slug
       const Category = require('../models/Category');
-      const categoryDoc = await Category.findOne({ slug: category });
+      const categoryDoc = await Category.findOne({ slug: category }).populate('parentCategory');
       if (categoryDoc) {
-        query.category = categoryDoc._id;
+        // If it's a subcategory, include both subcategory and parent category products
+        if (categoryDoc.isSubcategory && categoryDoc.parentCategory) {
+          query.category = {
+            $in: [categoryDoc._id, categoryDoc.parentCategory]
+          };
+          console.log(`🔍 Including products from subcategory: ${categoryDoc.name.en} and parent category`);
+        } else {
+          // If it's a parent category, only show products from that category
+          query.category = categoryDoc._id;
+          console.log(`🔍 Showing products from parent category: ${categoryDoc.name.en}`);
+        }
       }
     }
 
