@@ -4,7 +4,7 @@ const emailService = require('../services/emailService');
 
 exports.create = async (req, res) => {
   try {
-    const { name, subject, html, text, filters, scheduledFor, clientTzOffset } = req.body;
+    const { name, subject, html, text, filters, scheduledFor } = req.body;
     const campaign = await Campaign.create({
       name,
       subject,
@@ -12,10 +12,8 @@ exports.create = async (req, res) => {
       text,
       filters: filters || {},
       status: scheduledFor ? 'scheduled' : 'draft',
-      // Convert client-local time to UTC if clientTzOffset (in minutes) provided
-      scheduledFor: scheduledFor
-        ? new Date(new Date(scheduledFor).getTime() - (Number(clientTzOffset) || 0) * 60000)
-        : null,
+      // scheduledFor should come in as UTC ISO string from client
+      scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
       createdBy: req.user?._id
     });
     res.status(201).json({ success: true, data: campaign });
