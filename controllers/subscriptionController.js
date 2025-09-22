@@ -138,13 +138,20 @@ exports.broadcast = async (req, res) => {
       recipients++;
       const htmlContent = appendUnsub(html || text || '', sub.unsubscribeToken);
       try {
+        const unsubscribeUrl = `${(process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '').replace(/\/$/,'')}/api/subscriptions/unsubscribe/${sub.unsubscribeToken}`;
+        const textAlt = htmlContent
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ') // collapse whitespace
+          .trim();
         await transporter.sendMail({
           from: `"Your Business" <${process.env.GMAIL_USER}>`,
           to: sub.email,
           subject,
           html: htmlContent,
+          text: textAlt,
           headers: {
-            'List-Unsubscribe': `<${(process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '').replace(/\/$/,'')}/api/subscriptions/unsubscribe/${sub.unsubscribeToken}>`
+            'List-Unsubscribe': `<${unsubscribeUrl}>`
           }
         });
         sent++;
