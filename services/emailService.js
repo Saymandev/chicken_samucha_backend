@@ -164,6 +164,56 @@ class EmailService {
     }
   }
 
+  async sendSubscriptionWelcome(to, unsubscribeUrl, brand = { name: 'Chicken Samucha', emoji: '🍗' }) {
+    try {
+      const transporter = await this.createTransporter();
+      if (!transporter) {
+        return { messageId: 'dev-mode-no-email' };
+      }
+
+      const mailOptions = {
+        from: `"Your Business" <${process.env.GMAIL_USER}>`,
+        to,
+        subject: 'Thanks for subscribing! 🎉',
+        html: `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Subscription Confirmed</title>
+          </head>
+          <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+            <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+              <div style="background:linear-gradient(135deg,#ff6b35 0%,#f7931e 100%);padding:24px 28px;text-align:center;">
+                <div style="font-size:32px;line-height:1.2;color:#fff;">${brand.emoji} ${brand.name}</div>
+                <div style="color:#fff;opacity:.9;margin-top:6px">You’re on the list! 🎉</div>
+              </div>
+              <div style="padding:28px;">
+                <h2 style="margin:0 0 8px 0;color:#111827;font-size:22px;">Welcome to our newsletter</h2>
+                <p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.6;">Thanks for subscribing. We’ll send you special offers, new products and updates.</p>
+                <ul style="margin:0 0 20px 20px;color:#374151;font-size:15px;line-height:1.8;">
+                  <li>Exclusive discounts and seasonal deals</li>
+                  <li>New menu and product announcements</li>
+                  <li>Occasional tips and news</li>
+                </ul>
+                <a href="${process.env.FRONTEND_URL || '#'}" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;">Browse now</a>
+                <p style="margin:18px 0 0 0;color:#6b7280;font-size:12px;">If this wasn’t you, you can <a href="${unsubscribeUrl}" style="color:#ef4444;text-decoration:underline;">unsubscribe</a> anytime.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        headers: unsubscribeUrl ? { 'List-Unsubscribe': `<${unsubscribeUrl}>` } : {}
+      };
+
+      return await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('⚠️  Error sending subscription welcome email:', error.message);
+      return { error: error.message };
+    }
+  }
+
   async sendOrderConfirmation(to, orderDetails) {
     try {
       const transporter = await this.createTransporter();

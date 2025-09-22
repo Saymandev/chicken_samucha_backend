@@ -11,6 +11,7 @@ exports.subscribe = async (req, res) => {
     }
 
     // Upsert by email to avoid duplicates
+    // Ensure a token exists
     const subscriber = await Subscriber.findOneAndUpdate(
       { email: email.toLowerCase() },
       {
@@ -20,15 +21,18 @@ exports.subscribe = async (req, res) => {
           consent: !!consent,
           source: source || 'footer',
           unsubscribedAt: null
-        }
+        },
+        $setOnInsert: { unsubscribeToken: require('crypto').randomUUID() }
       },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    // Send welcome email (best-effort)
+    // Send welcome email with per-user unsubscribe link (best-effort)
     try {
+      const base = (process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '').replace(/\/$/, '');
+      const unsub = `${base}/api/subscriptions/unsubscribe/${subscriber.unsubscribeToken}`;
       if (typeof emailService.sendSubscriptionWelcome === 'function') {
-        await emailService.sendSubscriptionWelcome(subscriber.email);
+        await emailService.sendSubscriptionWelcome(subscriber.email, unsub);
       } else {
         await emailService.sendWelcomeEmail(subscriber.email, subscriber.name || 'Subscriber');
       }
