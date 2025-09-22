@@ -17,6 +17,9 @@ router.get('/', protect, authorize('admin'), subscriptionController.list);
 // Admin broadcast to subscribers
 router.post('/broadcast', protect, authorize('admin'), subscriptionController.broadcast);
 
+// Admin backfill existing users to subscribers
+router.post('/backfill', protect, authorize('admin'), subscriptionController.backfill);
+
 module.exports = router;
 
 

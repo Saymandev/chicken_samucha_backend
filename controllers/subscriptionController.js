@@ -194,4 +194,41 @@ exports.broadcast = async (req, res) => {
   }
 };
 
+// Admin: backfill existing registered users into Subscribers
+exports.backfill = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const users = await User.find({ role: 'user', email: { $ne: null } }).select('name email');
+    let created = 0, updated = 0, skipped = 0;
+    for (const u of users) {
+      try {
+        const existing = await Subscriber.findOne({ email: u.email.toLowerCase() });
+        if (existing) {
+          // Ensure not unsubscribed and name filled
+          const resUpdate = await Subscriber.updateOne(
+            { _id: existing._id },
+            { $set: { name: existing.name || u.name || undefined } }
+          );
+          skipped += 1;
+          continue;
+        }
+        await Subscriber.findOneAndUpdate(
+          { email: u.email.toLowerCase() },
+          {
+            $set: { email: u.email.toLowerCase(), name: u.name || undefined, consent: true, source: 'import', unsubscribedAt: null },
+            $setOnInsert: { unsubscribeToken: require('crypto').randomUUID() }
+          },
+          { upsert: true, new: true }
+        );
+        created += 1;
+      } catch (e) {
+        // continue
+      }
+    }
+    return res.status(200).json({ success: true, created, updated, skipped, totalScanned: users.length });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
