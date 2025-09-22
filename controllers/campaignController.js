@@ -58,7 +58,8 @@ exports.sendNow = async (req, res) => {
     for await (const sub of cursor) {
       recipients++;
       try {
-        const html = appendUnsub(campaign.html || campaign.text, sub.unsubscribeToken);
+        const decoded = decodeHtmlEntities(campaign.html || campaign.text || '');
+        const html = appendUnsub(decoded, sub.unsubscribeToken);
         const textAlt = html
           .replace(/<style[\s\S]*?<\/style>/gi, '')
           .replace(/<[^>]+>/g, ' ')
@@ -106,6 +107,16 @@ function appendUnsub(content, token) {
   if (!content) return footer;
   if (content.includes('</body>')) return content.replace('</body>', `${footer}</body>`);
   return `${content}${footer}`;
+}
+
+function decodeHtmlEntities(s) {
+  if (!s) return s;
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
 }
 
 
