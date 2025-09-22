@@ -47,6 +47,20 @@ const register = async (req, res) => {
     // Send welcome email (don't block registration if email fails)
     try {
       await emailService.sendWelcomeEmail(user.email, user.name);
+      // Auto-subscribe the user
+      try {
+        const Subscriber = require('../models/Subscriber');
+        await Subscriber.findOneAndUpdate(
+          { email: user.email.toLowerCase() },
+          {
+            $set: { email: user.email.toLowerCase(), name: user.name, consent: true, source: 'register', unsubscribedAt: null },
+            $setOnInsert: { unsubscribeToken: require('crypto').randomUUID() }
+          },
+          { upsert: true }
+        );
+      } catch (subErr) {
+        console.error('Auto-subscribe failed:', subErr.message);
+      }
     } catch (emailError) {
       console.error('Welcome email failed:', emailError);
       // Continue with registration even if email fails
