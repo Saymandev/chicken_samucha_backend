@@ -6,7 +6,12 @@ const config = require('../config/config');
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // Prefer HttpOnly cookie
+  if (req.cookies && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+  // Fallback to Authorization header for backward compatibility
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
