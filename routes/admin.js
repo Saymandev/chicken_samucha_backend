@@ -205,6 +205,12 @@ router.put('/notifications/:id/read', notificationController.markAsRead);
 router.put('/notifications/mark-all-read', notificationController.markAllAsRead);
 router.delete('/notifications/:id', notificationController.deleteNotification);
 
+// Campaigns (email broadcasts)
+const campaignController = require('../controllers/campaignController');
+router.post('/campaigns', campaignController.create);
+router.get('/campaigns', campaignController.list);
+router.post('/campaigns/:id/send', campaignController.sendNow);
+
 // Reports & Analytics
 router.get('/reports/sales-analytics', adminController.getSalesAnalytics);
 router.get('/reports/dashboard-metrics', adminController.getDashboardMetrics);

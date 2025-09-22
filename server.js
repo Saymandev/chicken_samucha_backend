@@ -31,6 +31,7 @@ const contactRoutes = require('./routes/contact');
 const promotionRoutes = require('./routes/promotions');
 const publicPromotionRoutes = require('./routes/publicPromotions');
 const refundRoutes = require('./routes/refunds');
+const subscriptionRoutes = require('./routes/subscriptions');
 const adminRefundRoutes = require('./routes/adminRefunds');
 const paymentRoutes = require('./routes/payments');
 const couponRoutes = require('./routes/coupons');
@@ -197,6 +198,7 @@ app.use('/api/admin/promotions', promotionRoutes);
 app.use('/api/promotions', publicPromotionRoutes);
 app.use('/api/refunds', refundRoutes);
 app.use('/api/admin/refunds', adminRefundRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 // OAuth setup routes (only in development)
 if (process.env.NODE_ENV === 'development') {

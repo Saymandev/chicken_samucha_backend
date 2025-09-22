@@ -39,6 +39,9 @@ class SchedulerService {
       // Monthly report on 1st of every month at 11:00 AM
       this.scheduleMonthlyReport();
 
+      // Campaign dispatcher every 5 minutes
+      this.scheduleCampaignDispatcher();
+
      
     } catch (error) {
       console.error('Failed to start scheduler:', error);
@@ -177,6 +180,31 @@ class SchedulerService {
     this.jobs.set('monthly', job);
     job.start();
    
+  }
+
+  scheduleCampaignDispatcher() {
+    if (!cron) return;
+    const job = cron.schedule('*/5 * * * *', async () => {
+      try {
+        const Campaign = require('../models/Campaign');
+        const now = new Date();
+        const due = await Campaign.find({ status: 'scheduled', scheduledFor: { $lte: now } }).limit(5);
+        const controller = require('../controllers/campaignController');
+        for (const c of due) {
+          try {
+            // mimic req/res minimal to reuse sendNow
+            await controller.sendNow({ params: { id: c._id.toString() } }, { status: () => ({ json: () => {} }) });
+          } catch (e) {
+            c.status = 'failed';
+            await c.save();
+          }
+        }
+      } catch (e) {
+        
+      }
+    }, { scheduled: false, timezone: 'Asia/Dhaka' });
+    this.jobs.set('campaign-dispatcher', job);
+    job.start();
   }
 
   async getAdminEmails() {
