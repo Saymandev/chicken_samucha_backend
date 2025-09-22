@@ -156,7 +156,7 @@ exports.broadcast = async (req, res) => {
     let sent = 0, failed = 0, recipients = 0;
     const transporter = await emailService.createTransporter();
     if (!transporter) {
-      return res.status(503).json({ success: false, message: 'Email service not configured' });
+      return res.status(503).json({ success: false, message: 'Email service not configureds' });
     }
 
     for await (const sub of cursor) {
