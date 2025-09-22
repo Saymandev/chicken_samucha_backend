@@ -41,16 +41,8 @@ const register = async (req, res) => {
       address
     });
 
-    // Generate token and set HttpOnly cookie
+    // Generate token
     const token = generateToken(user._id);
-    try {
-      res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 15 * 60 * 1000
-      });
-    } catch (_) {}
 
     // Send welcome email (don't block registration if email fails)
     try {
@@ -143,16 +135,8 @@ const login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate token and set HttpOnly cookie
+    // Generate token
     const token = generateToken(user._id);
-    try {
-      res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 15 * 60 * 1000
-      });
-    } catch (_) {}
 
     res.json({
       success: true,
@@ -295,14 +279,6 @@ const updatePassword = async (req, res) => {
     await user.save();
 
     const token = generateToken(user._id);
-    try {
-      res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 15 * 60 * 1000
-      });
-    } catch (_) {}
 
     res.json({
       success: true,
@@ -320,13 +296,6 @@ const updatePassword = async (req, res) => {
 
 // Logout user (client-side token removal)
 const logout = (req, res) => {
-  try {
-    res.clearCookie('access_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    });
-  } catch (_) {}
   res.json({
     success: true,
     message: 'Logged out successfully'
