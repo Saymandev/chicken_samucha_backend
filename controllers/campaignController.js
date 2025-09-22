@@ -4,7 +4,7 @@ const emailService = require('../services/emailService');
 
 exports.create = async (req, res) => {
   try {
-    const { name, subject, html, text, filters, scheduledFor } = req.body;
+    const { name, subject, html, text, filters, scheduledFor, clientTzOffset } = req.body;
     const campaign = await Campaign.create({
       name,
       subject,
@@ -12,7 +12,10 @@ exports.create = async (req, res) => {
       text,
       filters: filters || {},
       status: scheduledFor ? 'scheduled' : 'draft',
-      scheduledFor: scheduledFor || null,
+      // Convert client-local time to UTC if clientTzOffset (in minutes) provided
+      scheduledFor: scheduledFor
+        ? new Date(new Date(scheduledFor).getTime() - (Number(clientTzOffset) || 0) * 60000)
+        : null,
       createdBy: req.user?._id
     });
     res.status(201).json({ success: true, data: campaign });
@@ -89,6 +92,17 @@ exports.sendNow = async (req, res) => {
     await campaign.save();
 
     res.status(200).json({ success: true, data: campaign });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.remove = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const campaign = await Campaign.findByIdAndDelete(id);
+    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+    res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

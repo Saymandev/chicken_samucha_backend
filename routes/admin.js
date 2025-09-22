@@ -210,6 +210,7 @@ const campaignController = require('../controllers/campaignController');
 router.post('/campaigns', campaignController.create);
 router.get('/campaigns', campaignController.list);
 router.post('/campaigns/:id/send', campaignController.sendNow);
+router.delete('/campaigns/:id', campaignController.remove);
 
 // Reports & Analytics
 router.get('/reports/sales-analytics', adminController.getSalesAnalytics);
