@@ -55,38 +55,25 @@ exports.sendNow = async (req, res) => {
     const cursor = (await Subscriber.find(query).cursor());
     let sent = 0, failed = 0, recipients = 0;
 
-    const batchSize = 50; let batch = [];
     for await (const sub of cursor) {
       recipients++;
-      batch.push(sub.email);
-      if (batch.length >= batchSize) {
-        try {
-          await transporter.sendMail({
-            from: `"Your Business" <${process.env.GMAIL_USER}>`,
-            bcc: batch,
-            subject: campaign.subject,
-            html: appendUnsub(campaign.html || campaign.text)
-          });
-          sent += batch.length;
-        } catch (e) {
-          failed += batch.length;
-        }
-        batch = [];
-        await new Promise(r => setTimeout(r, 750));
-      }
-    }
-    if (batch.length) {
       try {
+        const html = appendUnsub(campaign.html || campaign.text, sub.unsubscribeToken);
         await transporter.sendMail({
           from: `"Your Business" <${process.env.GMAIL_USER}>`,
-          bcc: batch,
+          to: sub.email,
           subject: campaign.subject,
-          html: appendUnsub(campaign.html || campaign.text)
+          html,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'List-Unsubscribe': `<${(process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '').replace(/\/$/,'')}/api/subscriptions/unsubscribe/${sub.unsubscribeToken}>`
+          }
         });
-        sent += batch.length;
+        sent += 1;
       } catch (e) {
-        failed += batch.length;
+        failed += 1;
       }
+      await new Promise(r => setTimeout(r, 150));
     }
 
     campaign.status = 'sent';
@@ -100,9 +87,9 @@ exports.sendNow = async (req, res) => {
   }
 };
 
-function appendUnsub(content) {
+function appendUnsub(content, token) {
   const base = process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '';
-  const link = `${base.replace(/\/$/, '')}/api/subscriptions/unsubscribe/{token}`;
+  const link = `${base.replace(/\/$/, '')}/api/subscriptions/unsubscribe/${token || '{token}'}`;
   // Generic footer (tokenized links can be added per-user if needed in future)
   const footer = `
     <div style="margin-top:24px;color:#6b7280;font-size:12px">
