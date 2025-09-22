@@ -46,6 +46,31 @@ exports.subscribe = async (req, res) => {
   }
 };
 
+// Helper to append unsubscribe footer with per-user token
+function appendUnsub(content, token) {
+  const base = process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '';
+  const link = `${base.replace(/\/$/, '')}/api/subscriptions/unsubscribe/${token || '{token}'}`;
+  const footer = `
+    <div style="margin-top:24px;color:#6b7280;font-size:12px">
+      If you no longer wish to receive these emails, you can
+      <a href="${link}">unsubscribe here</a>.
+    </div>
+  `;
+  if (!content) return footer;
+  if (content.includes('</body>')) return content.replace('</body>', `${footer}</body>`);
+  return `${content}${footer}`;
+}
+
+function decodeHtmlEntities(s) {
+  if (!s) return s;
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
 exports.unsubscribe = async (req, res) => {
   try {
     const { email, token } = req.body;
@@ -136,7 +161,8 @@ exports.broadcast = async (req, res) => {
 
     for await (const sub of cursor) {
       recipients++;
-      const htmlContent = appendUnsub(html || text || '', sub.unsubscribeToken);
+      const decoded = decodeHtmlEntities(html || text || '');
+      const htmlContent = appendUnsub(decoded, sub.unsubscribeToken);
       try {
         const unsubscribeUrl = `${(process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || '').replace(/\/$/,'')}/api/subscriptions/unsubscribe/${sub.unsubscribeToken}`;
         const textAlt = htmlContent
