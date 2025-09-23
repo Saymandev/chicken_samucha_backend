@@ -29,7 +29,7 @@ const createOrderValidation = [
   }),
   
   body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
-  body('paymentInfo.method').isIn(['bkash', 'nagad', 'rocket', 'upay', 'cash_on_delivery']).withMessage('Valid payment method is required'),
+  body('paymentInfo.method').isIn(['bkash', 'nagad', 'rocket', 'upay', 'cash_on_delivery', 'sslcommerz']).withMessage('Valid payment method is required'),
   
   // Validate delivery method
   body('deliveryInfo.method').isIn(['pickup', 'delivery']).withMessage('Valid delivery method is required')
