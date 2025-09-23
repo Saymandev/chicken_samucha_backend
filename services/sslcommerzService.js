@@ -1,6 +1,8 @@
 const SSLCommerzPayment = require('sslcommerz-lts');
 const config = require('../config/config');
-
+console.log("config", config.SSLCOMMERZ_STORE_ID,
+  config.SSLCOMMERZ_STORE_PASSWORD,
+  config.SSLCOMMERZ_IS_SANDBOX);
 class SSLCommerzService {
   constructor() {
     this.sslcommerz = new SSLCommerzPayment(
