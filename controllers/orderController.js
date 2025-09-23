@@ -94,9 +94,12 @@ const createOrder = async (req, res) => {
     const discountAmount = 0;
     const finalAmountCalculated = totalAmount + deliveryChargeAmount - discountAmount;
     
-    // Generate order number manually to ensure it's set
-    const orderCount = await Order.countDocuments();
-    const orderNumber = `ORD${Date.now().toString().slice(-6)}${String(orderCount + 1).padStart(3, '0')}`;
+    // Use provided provisional order number (from payment initiation) if present; otherwise generate one
+    let orderNumber = req.body.orderNumber;
+    if (!orderNumber) {
+      const orderCount = await Order.countDocuments();
+      orderNumber = `ORD${Date.now().toString().slice(-6)}${String(orderCount + 1).padStart(3, '0')}`;
+    }
     
     // Prepare customer data based on delivery method
     const customerData = {
