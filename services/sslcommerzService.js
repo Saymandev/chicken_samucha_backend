@@ -75,7 +75,8 @@ class SSLCommerzService {
 
       console.log('🚀 Initiating SSLCommerz payment for order:', orderNumber);
       
-      const response = await this.sslcommerz.initiatePayment(postData);
+      // sslcommerz-lts exposes `init` for creating a payment session
+      const response = await this.sslcommerz.init(postData);
       
       if (response.status === 'SUCCESS') {
         console.log('✅ SSLCommerz payment initiated successfully');
@@ -151,7 +152,8 @@ class SSLCommerzService {
         store_passwd: config.SSLCOMMERZ_STORE_PASSWORD
       };
 
-      const verificationResponse = await this.sslcommerz.validateTransaction(verificationData);
+      // sslcommerz-lts exposes `validate` for verifying a transaction
+      const verificationResponse = await this.sslcommerz.validate(verificationData);
 
       if (verificationResponse.status === 'VALID' || verificationResponse.status === 'VALIDATED') {
         console.log('✅ SSLCommerz payment verified successfully');
