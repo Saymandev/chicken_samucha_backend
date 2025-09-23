@@ -1,8 +1,6 @@
 const SSLCommerzPayment = require('sslcommerz-lts');
 const config = require('../config/config');
-console.log("config", config.SSLCOMMERZ_STORE_ID,
-  config.SSLCOMMERZ_STORE_PASSWORD,
-  config.SSLCOMMERZ_IS_SANDBOX);
+
 class SSLCommerzService {
   constructor() {
     this.sslcommerz = new SSLCommerzPayment(
@@ -10,6 +8,16 @@ class SSLCommerzService {
       config.SSLCOMMERZ_STORE_PASSWORD,
       config.SSLCOMMERZ_IS_SANDBOX
     );
+    const mask = (v) => (v ? `${String(v).slice(0,4)}...${String(v).slice(-4)}` : '(empty)');
+    console.log('[SSLCommerz CONFIG]', {
+      isSandbox: config.SSLCOMMERZ_IS_SANDBOX,
+      storeId: mask(config.SSLCOMMERZ_STORE_ID),
+      storePassSet: !!config.SSLCOMMERZ_STORE_PASSWORD,
+      successUrl: config.SSLCOMMERZ_SUCCESS_URL,
+      failUrl: config.SSLCOMMERZ_FAIL_URL,
+      cancelUrl: config.SSLCOMMERZ_CANCEL_URL,
+      ipnUrl: config.SSLCOMMERZ_IPN_URL
+    });
   }
 
   /**
