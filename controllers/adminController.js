@@ -244,7 +244,8 @@ exports.getAllOrders = async (req, res) => {
     }
 
     const orders = await Order.find(query)
-      .populate('customer', 'name phone email')
+      .populate('items.product', 'name images')
+      .populate('user', 'name email phone')
       .populate({
         path: 'refunds',
         select: 'status amount reason createdAt',
@@ -314,7 +315,7 @@ exports.getAllUsers = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { status, notes, estimatedDeliveryTime } = req.body;
+    const { status, notes, estimatedDeliveryTime, deliveryPerson, deliveryPersonPhone } = req.body;
 
 
     const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
@@ -340,6 +341,8 @@ exports.updateOrderStatus = async (req, res) => {
     if (notes) updateData.adminNotes = notes;
     if (estimatedDeliveryTime) updateData.estimatedDeliveryTime = new Date(estimatedDeliveryTime);
     if (status === 'delivered') updateData['deliveryInfo.deliveredAt'] = new Date();
+    if (deliveryPerson) updateData['deliveryInfo.deliveryPerson'] = deliveryPerson;
+    if (deliveryPersonPhone) updateData['deliveryInfo.deliveryPersonPhone'] = deliveryPersonPhone;
     if (status === 'cancelled') updateData.cancelReason = 'Cancelled by admin';
 
     // If confirming order, validate product stock
