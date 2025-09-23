@@ -103,6 +103,11 @@ const orderSchema = new mongoose.Schema({
       enum: ['bkash', 'nagad', 'rocket', 'upay', 'cash_on_delivery', 'sslcommerz']
     },
     transactionId: String,
+    bankTransactionId: String, // For gateways like SSLCommerz (bank_tran_id)
+    paymentGateway: String, // e.g., 'sslcommerz'
+    provider: String, // e.g., Visa, bKash, Nagad, Internet Banking provider
+    cardType: String, // e.g., 'debit', 'credit'
+    cardBrand: String, // e.g., 'VISA', 'MASTERCARD'
     screenshot: {
       public_id: String,
       url: String
@@ -118,7 +123,8 @@ const orderSchema = new mongoose.Schema({
     },
     verificationDate: Date,
     paymentNumber: String, // The mobile number used for payment
-    notes: String
+    notes: String,
+    gatewayResponse: mongoose.Schema.Types.Mixed // Raw gateway payload if needed for audit
   },
   orderStatus: {
     type: String,

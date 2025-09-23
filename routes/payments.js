@@ -138,10 +138,21 @@ router.post('/sslcommerz/success', async (req, res) => {
       const order = await Order.findOne({ orderNumber: responseData.tran_id });
       
       if (order) {
+        // Extract provider details
+        const gw = verificationResult.data.gatewayResponse || {};
+        const cardBrand = verificationResult.data.cardBrand || gw.card_brand;
+        const cardType = verificationResult.data.cardType || gw.card_type;
+        const bankTranId = verificationResult.data.bankTransactionId || gw.bank_tran_id;
+
         // Update payment info using dot notation to avoid nested object issues
         await order.set('paymentInfo.status', 'verified');
-        await order.set('paymentInfo.transactionId', verificationResult.data.transactionId);
         await order.set('paymentInfo.method', 'sslcommerz');
+        await order.set('paymentInfo.paymentGateway', 'sslcommerz');
+        await order.set('paymentInfo.transactionId', verificationResult.data.transactionId);
+        if (bankTranId) await order.set('paymentInfo.bankTransactionId', bankTranId);
+        if (cardBrand) await order.set('paymentInfo.cardBrand', cardBrand);
+        if (cardType) await order.set('paymentInfo.cardType', cardType);
+        await order.set('paymentInfo.provider', cardBrand || cardType || 'sslcommerz');
         await order.set('paymentInfo.gatewayResponse', verificationResult.data.gatewayResponse);
         await order.set('paymentInfo.verifiedAt', new Date());
         await order.set('orderStatus', 'confirmed');
@@ -231,9 +242,15 @@ router.post('/sslcommerz/ipn', async (req, res) => {
       const order = await Order.findOne({ orderNumber: result.orderNumber });
       
       if (order) {
+        // IPN may also include brand/type; use what we have
         await order.set('paymentInfo.status', 'verified');
-        await order.set('paymentInfo.transactionId', result.transactionId);
         await order.set('paymentInfo.method', 'sslcommerz');
+        await order.set('paymentInfo.paymentGateway', 'sslcommerz');
+        await order.set('paymentInfo.transactionId', result.transactionId);
+        if (ipnData.bank_tran_id) await order.set('paymentInfo.bankTransactionId', ipnData.bank_tran_id);
+        if (ipnData.card_brand) await order.set('paymentInfo.cardBrand', ipnData.card_brand);
+        if (ipnData.card_type) await order.set('paymentInfo.cardType', ipnData.card_type);
+        await order.set('paymentInfo.provider', ipnData.card_brand || ipnData.card_type || 'sslcommerz');
         await order.set('paymentInfo.verifiedAt', new Date());
         await order.set('orderStatus', 'confirmed');
         await order.save();
