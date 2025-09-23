@@ -4,9 +4,9 @@ const config = require('../config/config');
 class SSLCommerzService {
   constructor() {
     this.sslcommerz = new SSLCommerzPayment(
-      config.SSLCOMMERZ_STORE_ID,
-      config.SSLCOMMERZ_STORE_PASSWORD,
-      config.SSLCOMMERZ_IS_SANDBOX
+      'chick68d23144a4d0f',
+      'chick68d23144a4d0f@ssl',
+      true
     );
     const mask = (v) => (v ? `${String(v).slice(0,4)}...${String(v).slice(-4)}` : '(empty)');
     console.log('[SSLCommerz CONFIG]', {
