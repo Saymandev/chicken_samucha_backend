@@ -100,7 +100,7 @@ const orderSchema = new mongoose.Schema({
     method: {
       type: String,
       required: true,
-      enum: ['bkash', 'nagad', 'rocket', 'upay', 'cash_on_delivery']
+      enum: ['bkash', 'nagad', 'rocket', 'upay', 'cash_on_delivery', 'sslcommerz']
     },
     transactionId: String,
     screenshot: {
