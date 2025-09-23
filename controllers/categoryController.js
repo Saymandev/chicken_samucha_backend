@@ -1,5 +1,6 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 
 // Get all categories
 exports.getAllCategories = async (req, res) => {
@@ -321,6 +322,71 @@ exports.getNavbarCategories = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch navbar categories'
+    });
+  }
+};
+
+// Get top categories based on sales
+exports.getTopCategories = async (req, res) => {
+  try {
+    const { limit = 4 } = req.query;
+    
+    // Aggregate to get categories with their sales data
+    const topCategories = await Order.aggregate([
+      // Match only delivered orders
+      { $match: { orderStatus: 'delivered' } },
+      // Unwind items array
+      { $unwind: '$items' },
+      // Lookup product details
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      // Unwind product array
+      { $unwind: '$product' },
+      // Lookup category details
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'product.category',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      // Unwind category array
+      { $unwind: '$category' },
+      // Group by category and calculate sales
+      {
+        $group: {
+          _id: '$category._id',
+          name: { $first: '$category.name' },
+          slug: { $first: '$category.slug' },
+          image: { $first: '$category.image' },
+          icon: { $first: '$category.icon' },
+          color: { $first: '$category.color' },
+          totalSales: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
+        }
+      },
+      // Sort by total sales descending
+      { $sort: { totalSales: -1 } },
+      // Limit results
+      { $limit: parseInt(limit) }
+    ]);
+
+    res.json({
+      success: true,
+      data: topCategories
+    });
+  } catch (error) {
+    console.error('Get top categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch top categories'
     });
   }
 };

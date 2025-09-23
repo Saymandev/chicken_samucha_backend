@@ -7,6 +7,7 @@ const { protect, authorize } = require('../middleware/auth');
 // Public routes
 router.get('/', categoryController.getAllCategories);
 router.get('/navbar', categoryController.getNavbarCategories);
+router.get('/top', categoryController.getTopCategories);
 router.get('/:id', categoryController.getCategoryById);
 
 // Admin routes (require authentication and admin role)
