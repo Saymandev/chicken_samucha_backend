@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 
 const sliderItemSchema = new mongoose.Schema({
   title: {
-    en: { type: String, required: true },
-    bn: { type: String, required: true }
+    en: { type: String, default: '' },
+    bn: { type: String, default: '' }
   },
   description: {
-    en: { type: String, required: true },
-    bn: { type: String, required: true }
+    en: { type: String, default: '' },
+    bn: { type: String, default: '' }
   },
   image: {
     url: { type: String, required: true },
