@@ -257,7 +257,35 @@ const reorderSliderItems = async (req, res) => {
   }
 };
 
-// Payment settings function removed - only SSLCommerz and COD are supported
+// Public delivery settings (for checkout and UI)
+const getPublicDeliverySettings = async (req, res) => {
+  try {
+    const Settings = require('../models/Settings');
+
+    const general = await Settings.getByCategory('general');
+    const delivery = await Settings.getByCategory('delivery');
+
+    const deliveryCharge = general?.deliveryCharge ?? 60;
+    const freeDeliveryThreshold = delivery?.freeDeliveryThreshold ?? 500;
+
+    res.json({
+      success: true,
+      settings: {
+        deliveryCharge,
+        freeDeliveryThreshold
+      }
+    });
+  } catch (error) {
+    console.error('Get public delivery settings error:', error);
+    res.json({
+      success: true,
+      settings: {
+        deliveryCharge: 60,
+        freeDeliveryThreshold: 500
+      }
+    });
+  }
+};
 
 module.exports = {
   getHeroContent,
@@ -268,6 +296,7 @@ module.exports = {
   deleteSliderItem,
   reorderSliderItems,
   // getPublicPaymentSettings removed - only SSLCommerz and COD are supported
+  getPublicDeliverySettings
 }; 
 
 // Announcement - Public

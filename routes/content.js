@@ -8,7 +8,8 @@ const router = express.Router();
 // Public routes - get content
 router.get('/hero', contentController.getHeroContent);
 router.get('/slider', contentController.getSliderItems);
-// Payment settings removed - only SSLCommerz and COD are supported
+// Public delivery settings
+router.get('/delivery-settings', contentController.getPublicDeliverySettings);
 router.get('/announcement', contentController.getAnnouncement);
 
 // Admin routes - manage content
