@@ -3,14 +3,17 @@ const config = require('../config/config');
 
 class SSLCommerzService {
   constructor() {
+    // sslcommerz-lts expects the 3rd param as isLive (true => LIVE). Our flag is IS_SANDBOX, so invert it.
+    const isLive = !config.SSLCOMMERZ_IS_SANDBOX;
     this.sslcommerz = new SSLCommerzPayment(
-      'chick68d23144a4d0f',
-      'chick68d23144a4d0f@ssl',
-      true
+      config.SSLCOMMERZ_STORE_ID,
+      config.SSLCOMMERZ_STORE_PASSWORD,
+      isLive
     );
     const mask = (v) => (v ? `${String(v).slice(0,4)}...${String(v).slice(-4)}` : '(empty)');
     console.log('[SSLCommerz CONFIG]', {
       isSandbox: config.SSLCOMMERZ_IS_SANDBOX,
+      isLive,
       storeId: mask(config.SSLCOMMERZ_STORE_ID),
       storePassSet: !!config.SSLCOMMERZ_STORE_PASSWORD,
       successUrl: config.SSLCOMMERZ_SUCCESS_URL,
