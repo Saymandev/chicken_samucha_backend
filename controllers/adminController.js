@@ -275,7 +275,7 @@ exports.getAllUsers = async (req, res) => {
     const { page = 1, limit = 10, search, role, isActive, sort = '-createdAt' } = req.query;
     const query = {};
     
-    // Role filter
+    // Role filters
     if (role) query.role = role;
     
     // Status filter
