@@ -225,14 +225,23 @@ class EmailService {
         return { messageId: 'dev-mode-no-email' };
       }
 
-      // Generate items list HTML
-      const itemsHtml = orderDetails.items.map(item => `
+      // Generate items list HTML (support both populated and plain items)
+      const itemsHtml = (orderDetails.items || []).map(item => {
+        const itemName = (item?.product?.name?.en)
+          || (item?.product?.name)
+          || (item?.name?.en)
+          || (item?.name?.bn)
+          || (typeof item?.name === 'string' ? item.name : null)
+          || 'Unknown Item';
+        const quantity = item?.quantity ?? 1;
+        const price = item?.price ?? (item?.subtotal && quantity ? (item.subtotal / quantity) : 0);
+        return `
         <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${item.product.name}</td>
-          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${item.quantity}</td>
-          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${item.price}</td>
-        </tr>
-      `).join('');
+          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${itemName}</td>
+          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${quantity}</td>
+          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${price}</td>
+        </tr>`;
+      }).join('');
       
       const mailOptions = {
         from: `"Your Business" <${process.env.GMAIL_USER}>`,
@@ -385,14 +394,23 @@ class EmailService {
       // Format status for display
       const statusDisplay = orderDetails.status ? orderDetails.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Pending';
       
-      // Generate items list HTML
-      const itemsHtml = orderDetails.items.map(item => `
+      // Generate items list HTML (support both populated and plain items)
+      const itemsHtml = (orderDetails.items || []).map(item => {
+        const itemName = (item?.product?.name?.en)
+          || (item?.product?.name)
+          || (item?.name?.en)
+          || (item?.name?.bn)
+          || (typeof item?.name === 'string' ? item.name : null)
+          || 'Unknown Item';
+        const quantity = item?.quantity ?? 1;
+        const price = item?.price ?? (item?.subtotal && quantity ? (item.subtotal / quantity) : 0);
+        return `
         <tr style="border-bottom: 1px solid #f3f4f6;">
-          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${item.product.name}</td>
-          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${item.quantity}</td>
-          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${item.price}</td>
-        </tr>
-      `).join('');
+          <td style="padding: 15px 20px; font-size: 14px; color: #374151; font-weight: 500;">${itemName}</td>
+          <td style="padding: 15px 20px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500;">${quantity}</td>
+          <td style="padding: 15px 20px; text-align: right; font-size: 14px; color: #059669; font-weight: 600;">৳${price}</td>
+        </tr>`;
+      }).join('');
 
       const mailOptions = {
         from: `"Your Business" <${process.env.GMAIL_USER}>`,
