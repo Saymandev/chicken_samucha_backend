@@ -25,5 +25,14 @@ module.exports = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
-  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN
+  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
+  
+  // SSLCommerz Configuration
+  SSLCOMMERZ_STORE_ID: process.env.SSLCOMMERZ_STORE_ID || 'your_store_id',
+  SSLCOMMERZ_STORE_PASSWORD: process.env.SSLCOMMERZ_STORE_PASSWORD || 'your_store_password',
+  SSLCOMMERZ_IS_SANDBOX: process.env.SSLCOMMERZ_IS_SANDBOX === 'true' || true,
+  SSLCOMMERZ_SUCCESS_URL: process.env.SSLCOMMERZ_SUCCESS_URL || 'https://chicken-samucha-frontend.vercel.app/payment/success',
+  SSLCOMMERZ_FAIL_URL: process.env.SSLCOMMERZ_FAIL_URL || 'https://chicken-samucha-frontend.vercel.app/payment/fail',
+  SSLCOMMERZ_CANCEL_URL: process.env.SSLCOMMERZ_CANCEL_URL || 'https://chicken-samucha-frontend.vercel.app/payment/cancel',
+  SSLCOMMERZ_IPN_URL: process.env.SSLCOMMERZ_IPN_URL || 'https://your-backend-domain.com/api/payments/sslcommerz/ipn'
 }; 

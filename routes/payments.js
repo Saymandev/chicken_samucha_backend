@@ -1,228 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
+const sslcommerzService = require('../services/sslcommerzService');
+const Order = require('../models/Order');
 
-// Configure multer for payment screenshot uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/payments/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'payment-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Multer configuration removed - no longer needed for SSLCommerz or COD
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'), false);
-    }
-  }
-});
-
-// Mock payment gateway configurations
-const mockPaymentGateways = {
-  bkash: {
-    merchantNumber: '01234567890',
-    apiKey: 'bkash_api_key_here',
-    enabled: true
+// Payment gateway configurations - only SSLCommerz and Cash on Delivery
+const paymentGateways = {
+  sslcommerz: {
+    enabled: true,
+    name: 'SSLCommerz',
+    description: 'Pay with Credit/Debit Card, Mobile Banking, Internet Banking'
   },
-  nagad: {
-    merchantNumber: '01234567891', 
-    apiKey: 'nagad_api_key_here',
-    enabled: true
-  },
-  rocket: {
-    merchantNumber: '01234567892',
-    apiKey: 'rocket_api_key_here', 
-    enabled: true
-  },
-  upay: {
-    merchantNumber: '01234567893',
-    apiKey: 'upay_api_key_here',
-    enabled: false
+  cash_on_delivery: {
+    enabled: true,
+    name: 'Cash on Delivery'
   }
 };
 
-// Validate Bangladesh phone number
-const validateBDPhone = (phone) => {
-  const bdPhoneRegex = /^01[3-9]\d{8}$/;
-  return bdPhoneRegex.test(phone);
-};
+// Phone validation removed - not needed for SSLCommerz or COD
 
-// bKash payment initiation
-router.post('/bkash/initiate', async (req, res) => {
-  try {
-    const { amount, customerPhone, reference } = req.body;
-
-    if (!amount || !customerPhone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Amount and customer phone are required'
-      });
-    }
-
-    if (!validateBDPhone(customerPhone)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid Bangladesh phone number'
-      });
-    }
-
-    const paymentId = 'BKH' + Date.now();
-    
-    res.json({
-      success: true,
-      data: {
-        paymentId,
-        merchantNumber: mockPaymentGateways.bkash.merchantNumber,
-        amount,
-        reference: reference || customerPhone,
-        instructions: [
-          'Open bKash app or dial *247#',
-          'Select "Send Money"', 
-          `Enter merchant number: ${mockPaymentGateways.bkash.merchantNumber}`,
-          `Enter amount: ৳${amount}`,
-          `Enter reference: ${reference || customerPhone}`,
-          'Complete the transaction',
-          'Take a screenshot and upload'
-        ]
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initiate bKash payment'
-    });
-  }
-});
-
-// Nagad payment initiation
-router.post('/nagad/initiate', async (req, res) => {
-  try {
-    const { amount, customerPhone, reference } = req.body;
-
-    const paymentId = 'NGD' + Date.now();
-    
-    res.json({
-      success: true,
-      data: {
-        paymentId,
-        merchantNumber: mockPaymentGateways.nagad.merchantNumber,
-        amount,
-        reference: reference || customerPhone,
-        instructions: [
-          'Open Nagad app or dial *167#',
-          'Select "Send Money"',
-          `Enter merchant number: ${mockPaymentGateways.nagad.merchantNumber}`,
-          `Enter amount: ৳${amount}`,
-          `Enter reference: ${reference || customerPhone}`,
-          'Complete the transaction',
-          'Take a screenshot and upload'
-        ]
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initiate Nagad payment'
-    });
-  }
-});
-
-// Rocket payment initiation
-router.post('/rocket/initiate', async (req, res) => {
-  try {
-    const { amount, customerPhone, reference } = req.body;
-
-    const paymentId = 'RKT' + Date.now();
-    
-    res.json({
-      success: true,
-      data: {
-        paymentId,
-        merchantNumber: mockPaymentGateways.rocket.merchantNumber,
-        amount,
-        reference: reference || customerPhone
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initiate Rocket payment'
-    });
-  }
-});
-
-// General mobile payment verification
-router.post('/mobile/verify', upload.single('screenshot'), async (req, res) => {
-  try {
-    const { method, transactionId, amount, customerPhone } = req.body;
-    const screenshot = req.file;
-
-    if (!method || !transactionId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Payment method and transaction ID are required'
-      });
-    }
-
-    if (!mockPaymentGateways[method]) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid payment method'
-      });
-    }
-
-    // Mock payment verification
-    const isValidTransaction = transactionId.length >= 6;
-    
-    if (!isValidTransaction) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid transaction ID format'
-      });
-    }
-
-    const verificationResult = {
-      transactionId,
-      method,
-      status: 'verified',
-      amount: parseFloat(amount),
-      customerPhone,
-      screenshot: screenshot ? {
-        filename: screenshot.filename,
-        path: screenshot.path,
-        url: `/uploads/payments/${screenshot.filename}`
-      } : null,
-      verifiedAt: new Date(),
-      gatewayResponse: {
-        success: true,
-        gateway: method,
-        reference: transactionId
-      }
-    };
-
-    res.json({
-      success: true,
-      message: 'Payment verified successfully',
-      data: verificationResult
-    });
-
-  } catch (error) {
-    console.error('Payment verification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify payment'
-    });
-  }
-});
+// Mobile payment methods removed - only SSLCommerz and Cash on Delivery are supported
 
 // Get payment methods
 router.get('/methods', async (req, res) => {
@@ -230,35 +28,17 @@ router.get('/methods', async (req, res) => {
     res.json({
       success: true,
       data: {
-        bkash: {
-          enabled: mockPaymentGateways.bkash.enabled,
-          merchantNumber: mockPaymentGateways.bkash.merchantNumber,
-          name: 'bKash',
-          logo: '📱'
-        },
-        nagad: {
-          enabled: mockPaymentGateways.nagad.enabled,
-          merchantNumber: mockPaymentGateways.nagad.merchantNumber,
-          name: 'Nagad',
-          logo: '💰'
-        },
-        rocket: {
-          enabled: mockPaymentGateways.rocket.enabled,
-          merchantNumber: mockPaymentGateways.rocket.merchantNumber,
-          name: 'Rocket',
-          logo: '🚀'
-        },
-        upay: {
-          enabled: mockPaymentGateways.upay.enabled,
-          merchantNumber: mockPaymentGateways.upay.merchantNumber,
-          name: 'Upay',
-          logo: '💳'
+        sslcommerz: {
+          enabled: paymentGateways.sslcommerz.enabled,
+          name: 'SSLCommerz',
+          logo: '🏦',
+          description: 'Pay with Credit/Debit Card, Mobile Banking, Internet Banking',
+          supportedMethods: ['visa', 'mastercard', 'brac_visa', 'dbbl_visa', 'amex', 'internet_banking']
         },
         cash_on_delivery: {
-          enabled: true,
+          enabled: paymentGateways.cash_on_delivery.enabled,
           name: 'Cash on Delivery',
-          logo: '💵',
-          deliveryCharge: 60
+          logo: '💵'
         }
       }
     });
@@ -270,33 +50,281 @@ router.get('/methods', async (req, res) => {
   }
 });
 
-// Admin payment settings update
+// Admin payment settings update - only for SSLCommerz and COD
 router.put('/admin/settings', async (req, res) => {
   try {
-    const { bkash, nagad, rocket, upay } = req.body;
+    const { sslcommerz, cash_on_delivery } = req.body;
 
-    if (bkash) {
-      Object.assign(mockPaymentGateways.bkash, bkash);
+    if (sslcommerz) {
+      Object.assign(paymentGateways.sslcommerz, sslcommerz);
     }
-    if (nagad) {
-      Object.assign(mockPaymentGateways.nagad, nagad);
-    }
-    if (rocket) {
-      Object.assign(mockPaymentGateways.rocket, rocket);
-    }
-    if (upay) {
-      Object.assign(mockPaymentGateways.upay, upay);
+    if (cash_on_delivery) {
+      Object.assign(paymentGateways.cash_on_delivery, cash_on_delivery);
     }
 
     res.json({
       success: true,
       message: 'Payment settings updated successfully',
-      data: mockPaymentGateways
+      data: paymentGateways
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Failed to update payment settings'
+    });
+  }
+});
+
+// SSLCommerz Payment Routes
+
+// Initiate SSLCommerz payment
+router.post('/sslcommerz/initiate', async (req, res) => {
+  try {
+    const { orderNumber, totalAmount, customer, items } = req.body;
+
+    if (!orderNumber || !totalAmount || !customer) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order number, total amount, and customer details are required'
+      });
+    }
+
+    // Prepare payment data
+    const paymentData = {
+      orderNumber,
+      totalAmount: parseFloat(totalAmount),
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerPhone: customer.phone,
+      customerAddress: customer.address,
+      items: items || []
+    };
+
+    const result = await sslcommerzService.initiatePayment(paymentData);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Payment initiated successfully',
+        data: result.data
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message || 'Failed to initiate payment',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    console.error('SSLCommerz initiate payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while initiating payment'
+    });
+  }
+});
+
+// SSLCommerz payment success callback
+router.post('/sslcommerz/success', async (req, res) => {
+  try {
+    const responseData = req.body;
+    console.log('SSLCommerz success callback received:', responseData);
+
+    // Verify the payment
+    const verificationResult = await sslcommerzService.verifyPayment(responseData);
+
+    if (verificationResult.success && verificationResult.verified) {
+      // Update order with payment information
+      const order = await Order.findOne({ orderNumber: responseData.tran_id });
+      
+      if (order) {
+        // Update payment info using dot notation to avoid nested object issues
+        await order.set('paymentInfo.status', 'verified');
+        await order.set('paymentInfo.transactionId', verificationResult.data.transactionId);
+        await order.set('paymentInfo.method', 'sslcommerz');
+        await order.set('paymentInfo.gatewayResponse', verificationResult.data.gatewayResponse);
+        await order.set('paymentInfo.verifiedAt', new Date());
+        await order.set('orderStatus', 'confirmed');
+        
+        await order.save();
+
+        console.log('✅ Order payment verified and updated:', order.orderNumber);
+      }
+
+      // Redirect to frontend success page
+      const successUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?order=${responseData.tran_id}&status=success`;
+      res.redirect(successUrl);
+    } else {
+      console.error('❌ Payment verification failed:', verificationResult);
+      const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${responseData.tran_id}&status=failed&reason=${encodeURIComponent(verificationResult.message)}`;
+      res.redirect(failUrl);
+    }
+  } catch (error) {
+    console.error('SSLCommerz success callback error:', error);
+    const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${req.body.tran_id || 'unknown'}&status=error&reason=${encodeURIComponent('Server error')}`;
+    res.redirect(failUrl);
+  }
+});
+
+// SSLCommerz payment fail callback
+router.post('/sslcommerz/fail', async (req, res) => {
+  try {
+    const responseData = req.body;
+    console.log('SSLCommerz fail callback received:', responseData);
+
+    // Update order status to failed
+    if (responseData.tran_id) {
+      const order = await Order.findOne({ orderNumber: responseData.tran_id });
+      if (order) {
+        await order.set('paymentInfo.status', 'failed');
+        await order.set('paymentInfo.failureReason', responseData.failedreason || 'Payment failed');
+        await order.set('orderStatus', 'cancelled');
+        await order.save();
+      }
+    }
+
+    const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${responseData.tran_id || 'unknown'}&status=failed&reason=${encodeURIComponent(responseData.failedreason || 'Payment failed')}`;
+    res.redirect(failUrl);
+  } catch (error) {
+    console.error('SSLCommerz fail callback error:', error);
+    const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${req.body.tran_id || 'unknown'}&status=error&reason=${encodeURIComponent('Server error')}`;
+    res.redirect(failUrl);
+  }
+});
+
+// SSLCommerz payment cancel callback
+router.post('/sslcommerz/cancel', async (req, res) => {
+  try {
+    const responseData = req.body;
+    console.log('SSLCommerz cancel callback received:', responseData);
+
+    // Update order status to cancelled
+    if (responseData.tran_id) {
+      const order = await Order.findOne({ orderNumber: responseData.tran_id });
+      if (order) {
+        await order.set('paymentInfo.status', 'cancelled');
+        await order.set('paymentInfo.cancellationReason', 'Payment cancelled by user');
+        await order.set('orderStatus', 'cancelled');
+        await order.save();
+      }
+    }
+
+    const cancelUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?order=${responseData.tran_id || 'unknown'}&status=cancelled`;
+    res.redirect(cancelUrl);
+  } catch (error) {
+    console.error('SSLCommerz cancel callback error:', error);
+    const cancelUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?order=${req.body.tran_id || 'unknown'}&status=error`;
+    res.redirect(cancelUrl);
+  }
+});
+
+// SSLCommerz IPN (Instant Payment Notification)
+router.post('/sslcommerz/ipn', async (req, res) => {
+  try {
+    const ipnData = req.body;
+    console.log('SSLCommerz IPN received:', ipnData);
+
+    const result = await sslcommerzService.processIPN(ipnData);
+
+    if (result.success && result.processed) {
+      // Update order with payment information
+      const order = await Order.findOne({ orderNumber: result.orderNumber });
+      
+      if (order) {
+        await order.set('paymentInfo.status', 'verified');
+        await order.set('paymentInfo.transactionId', result.transactionId);
+        await order.set('paymentInfo.method', 'sslcommerz');
+        await order.set('paymentInfo.verifiedAt', new Date());
+        await order.set('orderStatus', 'confirmed');
+        await order.save();
+
+        console.log('✅ Order payment verified via IPN:', order.orderNumber);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'IPN processed successfully'
+      });
+    } else {
+      console.error('❌ IPN processing failed:', result);
+      res.status(400).json({
+        success: false,
+        message: result.message || 'IPN processing failed'
+      });
+    }
+  } catch (error) {
+    console.error('SSLCommerz IPN error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'IPN processing failed'
+    });
+  }
+});
+
+// Get SSLCommerz payment status
+router.get('/sslcommerz/status/:orderNumber', async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    
+    const result = await sslcommerzService.getPaymentStatus(orderNumber);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        data: result.data
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message || 'Failed to get payment status'
+      });
+    }
+  } catch (error) {
+    console.error('Get SSLCommerz payment status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while getting payment status'
+    });
+  }
+});
+
+// SSLCommerz refund
+router.post('/sslcommerz/refund', async (req, res) => {
+  try {
+    const { bankTranId, refundAmount, refundRemarks } = req.body;
+
+    if (!bankTranId || !refundAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bank transaction ID and refund amount are required'
+      });
+    }
+
+    const refundData = {
+      bank_tran_id: bankTranId,
+      refund_amount: parseFloat(refundAmount),
+      refund_remarks: refundRemarks || 'Refund request'
+    };
+
+    const result = await sslcommerzService.refundPayment(refundData);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Refund initiated successfully',
+        data: result.data
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message || 'Refund failed'
+      });
+    }
+  } catch (error) {
+    console.error('SSLCommerz refund error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while processing refund'
     });
   }
 });

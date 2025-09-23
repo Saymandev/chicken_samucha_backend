@@ -623,31 +623,7 @@ exports.toggleSliderItem = async (req, res) => {
   }
 };
 
-// Payment Settings
-exports.getPaymentSettings = async (req, res) => {
-  try {
-    const paymentSettings = await Settings.getPaymentSettings();
-    res.json({ success: true, settings: paymentSettings });
-  } catch (error) {
-    console.error('Get payment settings error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch payment settings' });
-  }
-};
-
-exports.updatePaymentSettings = async (req, res) => {
-  try {
-    
-    const updatedSettings = await Settings.savePaymentSettings(req.body, req.user?.id);
-    res.json({ 
-      success: true, 
-      message: 'Payment settings updated successfully', 
-      settings: updatedSettings 
-    });
-  } catch (error) {
-    console.error('Update payment settings error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update payment settings' });
-  }
-};
+// Payment settings functions removed - only SSLCommerz and COD are supported
 
 // Get recent activities
 exports.getRecentActivities = async (req, res) => {
@@ -794,12 +770,11 @@ exports.getSystemSettings = async (req, res) => {
       }
     } else {
       // Get all settings
-      const [general, notification, delivery, security, payment] = await Promise.all([
+      const [general, notification, delivery, security] = await Promise.all([
         Settings.getByCategory('general'),
         Settings.getByCategory('notification'),
         Settings.getByCategory('delivery'),
-        Settings.getByCategory('security'),
-        Settings.getPaymentSettings()
+        Settings.getByCategory('security')
       ]);
 
       settings = {
@@ -835,8 +810,8 @@ exports.getSystemSettings = async (req, res) => {
           maxLoginAttempts: security.maxLoginAttempts || 5,
           sessionTimeout: security.sessionTimeout || 24,
           ...security
-        },
-        payment
+        }
+        // Payment settings removed - only SSLCommerz and COD are supported
       };
     }
 
@@ -874,9 +849,7 @@ exports.updateSystemSettings = async (req, res) => {
 
     // Handle different categories of settings
     switch (category) {
-      case 'payment':
-        result = await Settings.savePaymentSettings(settings, userId);
-        break;
+      // Payment case removed - only SSLCommerz and COD are supported
       
       case 'general':
         // Handle general settings
@@ -954,19 +927,14 @@ exports.getSettingsByCategory = async (req, res) => {
     const Settings = require('../models/Settings');
     const { category } = req.params;
 
-    if (!['payment', 'general', 'notification', 'delivery', 'security'].includes(category)) {
+    if (!['general', 'notification', 'delivery', 'security'].includes(category)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid category. Valid categories: payment, general, notification, delivery, security'
+        message: 'Invalid category. Valid categories: general, notification, delivery, security'
       });
     }
 
-    let settings;
-    if (category === 'payment') {
-      settings = await Settings.getPaymentSettings();
-    } else {
-      settings = await Settings.getByCategory(category);
-    }
+    let settings = await Settings.getByCategory(category);
 
     res.json({
       success: true,
@@ -1025,7 +993,7 @@ exports.resetSettingsToDefaults = async (req, res) => {
         nagad: { enabled: false, merchantNumber: '', apiKey: '' },
         rocket: { enabled: false, merchantNumber: '', apiKey: '' },
         upay: { enabled: false, merchantNumber: '', apiKey: '' },
-        cashOnDelivery: { enabled: true, deliveryCharge: 60 }
+        cashOnDelivery: { enabled: true }
       }
     };
 

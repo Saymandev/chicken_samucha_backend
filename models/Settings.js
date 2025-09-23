@@ -88,8 +88,7 @@ settingsSchema.statics.getPaymentSettings = async function() {
       apiKey: paymentSettings.upayApiKey || ''
     },
     cashOnDelivery: {
-      enabled: paymentSettings.codEnabled !== false, // Default to true
-      deliveryCharge: paymentSettings.deliveryCharge || 60
+      enabled: paymentSettings.codEnabled !== false // Default to true
     }
   };
 };
@@ -118,8 +117,7 @@ settingsSchema.statics.savePaymentSettings = async function(settings, userId = n
     { category: 'payment', key: 'upayApiKey', value: settings.upay?.apiKey || '' },
     
     // Cash on Delivery settings
-    { category: 'payment', key: 'codEnabled', value: settings.cashOnDelivery?.enabled !== false },
-    { category: 'payment', key: 'deliveryCharge', value: settings.cashOnDelivery?.deliveryCharge || 60 }
+    { category: 'payment', key: 'codEnabled', value: settings.cashOnDelivery?.enabled !== false }
   ];
 
   const promises = updates.map(({ category, key, value }) => 

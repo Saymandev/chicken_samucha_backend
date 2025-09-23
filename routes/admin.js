@@ -183,9 +183,7 @@ router.put('/content/hero', adminController.updateHeroContent);
 router.get('/content/slider', adminController.getSliderItems);
 router.put('/content/slider/:itemId/toggle', adminController.toggleSliderItem);
 
-// Payment settings
-router.get('/settings/payments', adminController.getPaymentSettings);
-router.put('/settings/payments', adminController.updatePaymentSettings);
+// Payment settings removed - only SSLCommerz and COD are supported
 
 // System settings
 router.get('/settings', adminController.getSystemSettings);

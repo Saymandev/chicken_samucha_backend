@@ -257,61 +257,7 @@ const reorderSliderItems = async (req, res) => {
   }
 };
 
-// Get public payment and delivery settings (for customers)
-const getPublicPaymentSettings = async (req, res) => {
-  try {
-    const Settings = require('../models/Settings');
-    const paymentSettings = await Settings.getPaymentSettings();
-    const deliverySettings = await Settings.getByCategory('delivery');
-    const generalSettings = await Settings.getByCategory('general');
-    
-    // Return only public information that customers need
-    const publicSettings = {
-      bkash: {
-        enabled: paymentSettings.bkash?.enabled || false,
-        merchantNumber: paymentSettings.bkash?.merchantNumber || '01234567890'
-      },
-      nagad: {
-        enabled: paymentSettings.nagad?.enabled || false,
-        merchantNumber: paymentSettings.nagad?.merchantNumber || '01234567891'
-      },
-      rocket: {
-        enabled: paymentSettings.rocket?.enabled || false,
-        merchantNumber: paymentSettings.rocket?.merchantNumber || '01234567892'
-      },
-      upay: {
-        enabled: paymentSettings.upay?.enabled || false,
-        merchantNumber: paymentSettings.upay?.merchantNumber || '01234567893'
-      },
-      cashOnDelivery: {
-        enabled: paymentSettings.cashOnDelivery?.enabled !== false, // Default to true
-        deliveryCharge: paymentSettings.cashOnDelivery?.deliveryCharge || 60
-      },
-      freeDeliveryThreshold: deliverySettings?.freeDeliveryThreshold ?? 500,
-      // Normalized delivery charge used by checkout (prefers general setting)
-      deliveryCharge: (generalSettings?.deliveryCharge ?? paymentSettings.cashOnDelivery?.deliveryCharge) || 60
-    };
-
-    res.json({
-      success: true,
-      settings: publicSettings
-    });
-  } catch (error) {
-    console.error('Get public payment settings error:', error);
-    // Return default settings if database fails
-    res.json({
-      success: true,
-      settings: {
-        bkash: { enabled: true, merchantNumber: '01234567890' },
-        nagad: { enabled: true, merchantNumber: '01234567891' },
-        rocket: { enabled: true, merchantNumber: '01234567892' },
-        upay: { enabled: false, merchantNumber: '01234567893' },
-        cashOnDelivery: { enabled: true, deliveryCharge: 60 },
-        freeDeliveryThreshold: 500
-      }
-    });
-  }
-};
+// Payment settings function removed - only SSLCommerz and COD are supported
 
 module.exports = {
   getHeroContent,
@@ -321,7 +267,7 @@ module.exports = {
   updateSliderItem,
   deleteSliderItem,
   reorderSliderItems,
-  getPublicPaymentSettings
+  // getPublicPaymentSettings removed - only SSLCommerz and COD are supported
 }; 
 
 // Announcement - Public

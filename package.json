@@ -33,6 +33,7 @@
     "nodemailer": "^7.0.6",
     "socket.io": "^4.7.4",
     "socket.io-client": "^4.8.1",
+    "sslcommerz-lts": "^1.2.0",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
