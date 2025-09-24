@@ -114,3 +114,4 @@ navigationMenuSchema.statics.getFlatMenu = async function() {
 };
 
 module.exports = mongoose.model('NavigationMenu', navigationMenuSchema);
+

@@ -11,7 +11,7 @@ const {
   toggleNavigationMenuStatus
 } = require('../controllers/navigationController');
 const { validateNavigationMenu, validateReorder } = require('../middleware/navigationValidation');
-const { adminAuth } = require('../middleware/adminAuth');
+const adminAuth = require('../middleware/adminAuth');
 
 // Public routes
 router.get('/', getNavigationMenu);
@@ -26,3 +26,4 @@ router.post('/admin/reorder', adminAuth, validateReorder, reorderNavigationMenus
 router.patch('/admin/:id/toggle', adminAuth, toggleNavigationMenuStatus);
 
 module.exports = router;
+
