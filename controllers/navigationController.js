@@ -122,6 +122,11 @@ const createNavigationMenu = async (req, res) => {
     
     const menuData = req.body;
     
+    // Handle empty parentId - convert to null/undefined
+    if (menuData.parentId === '' || menuData.parentId === null) {
+      delete menuData.parentId;
+    }
+    
     // If parentId is provided, validate it exists
     if (menuData.parentId) {
       const parent = await NavigationMenu.findById(menuData.parentId);
@@ -169,6 +174,11 @@ const updateNavigationMenu = async (req, res) => {
     }
     
     const menuData = req.body;
+    
+    // Handle empty parentId - convert to null/undefined
+    if (menuData.parentId === '' || menuData.parentId === null) {
+      menuData.parentId = null;
+    }
     
     // If parentId is being updated, validate it exists and prevent circular references
     if (menuData.parentId) {
