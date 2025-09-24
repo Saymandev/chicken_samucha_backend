@@ -195,7 +195,7 @@ const getMe = async (req, res) => {
 // Update user details
 const updateDetails = async (req, res) => {
   try {
-    const { name, phone, address, preferredLanguage, preferredTheme } = req.body;
+    const { name, phone, address, preferredLanguage, preferredTheme, lastDeliveryZoneId } = req.body;
 
     const fieldsToUpdate = {};
     if (name) fieldsToUpdate.name = name;
@@ -203,6 +203,7 @@ const updateDetails = async (req, res) => {
     if (address) fieldsToUpdate.address = address;
     if (preferredLanguage) fieldsToUpdate.preferredLanguage = preferredLanguage;
     if (preferredTheme) fieldsToUpdate.preferredTheme = preferredTheme;
+    if (lastDeliveryZoneId !== undefined) fieldsToUpdate.lastDeliveryZoneId = lastDeliveryZoneId || null;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
@@ -225,7 +226,8 @@ const updateDetails = async (req, res) => {
         address: user.address,
         preferredLanguage: user.preferredLanguage,
         preferredTheme: user.preferredTheme,
-        avatar: user.avatar
+        avatar: user.avatar,
+        lastDeliveryZoneId: user.lastDeliveryZoneId
       }
     });
   } catch (error) {

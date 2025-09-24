@@ -24,7 +24,7 @@ exports.getProfile = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, address, preferredLanguage, preferredTheme } = req.body;
+    const { name, phone, address, preferredLanguage, preferredTheme, lastDeliveryZoneId } = req.body;
 
     const fieldsToUpdate = {};
     if (name) fieldsToUpdate.name = name;
@@ -32,6 +32,7 @@ exports.updateProfile = async (req, res) => {
     if (address) fieldsToUpdate.address = address;
     if (preferredLanguage) fieldsToUpdate.preferredLanguage = preferredLanguage;
     if (preferredTheme) fieldsToUpdate.preferredTheme = preferredTheme;
+    if (lastDeliveryZoneId !== undefined) fieldsToUpdate.lastDeliveryZoneId = lastDeliveryZoneId || null;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,

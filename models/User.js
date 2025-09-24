@@ -56,6 +56,11 @@ const userSchema = new mongoose.Schema({
     enum: ['light', 'dark'],
     default: 'light'
   },
+  // Persist user's last selected delivery zone for checkout convenience
+  lastDeliveryZoneId: {
+    type: String,
+    default: null
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   isActive: {

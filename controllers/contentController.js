@@ -267,12 +267,14 @@ const getPublicDeliverySettings = async (req, res) => {
 
     const deliveryCharge = general?.deliveryCharge ?? 60;
     const freeDeliveryThreshold = delivery?.freeDeliveryThreshold ?? 500;
+    const zones = Array.isArray(delivery?.zones) ? delivery.zones : [];
 
     res.json({
       success: true,
       settings: {
         deliveryCharge,
-        freeDeliveryThreshold
+        freeDeliveryThreshold,
+        zones
       }
     });
   } catch (error) {
@@ -281,7 +283,8 @@ const getPublicDeliverySettings = async (req, res) => {
       success: true,
       settings: {
         deliveryCharge: 60,
-        freeDeliveryThreshold: 500
+        freeDeliveryThreshold: 500,
+        zones: []
       }
     });
   }
