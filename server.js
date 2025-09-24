@@ -37,6 +37,7 @@ const paymentRoutes = require('./routes/payments');
 const couponRoutes = require('./routes/coupons');
 const categoryRoutes = require('./routes/category');
 const wishlistRoutes = require('./routes/wishlist');
+const navigationRoutes = require('./routes/navigation');
 
 // OAuth setup routes (for development/setup only)
 const oauthSetupRoutes = require('./routes/oauth-setup');
@@ -194,6 +195,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/navigation', navigationRoutes);
 app.use('/api/admin/promotions', promotionRoutes);
 app.use('/api/promotions', publicPromotionRoutes);
 app.use('/api/refunds', refundRoutes);
