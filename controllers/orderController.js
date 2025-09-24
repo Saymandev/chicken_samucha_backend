@@ -113,6 +113,14 @@ const createOrder = async (req, res) => {
       customerData.address = customer.address;
     }
 
+    // Set initial order status based on payment method and verification
+    let initialOrderStatus = 'pending';
+    if (paymentInfo.method === 'sslcommerz' && paymentInfo.status === 'verified') {
+      initialOrderStatus = 'confirmed';
+    } else if (paymentInfo.method === 'cod') {
+      initialOrderStatus = 'pending';
+    }
+
     const orderData = {
       orderNumber,
       customer: customerData,
@@ -122,10 +130,15 @@ const createOrder = async (req, res) => {
       deliveryCharge: deliveryChargeAmount,
       discount: discountAmount,
       finalAmount: finalAmountCalculated,
+      orderStatus: initialOrderStatus,
       paymentInfo: {
         method: paymentInfo.method,
+        status: paymentInfo.status || 'pending',
         transactionId: paymentInfo.transactionId || undefined,
         paymentNumber: paymentInfo.paymentNumber || undefined,
+        paymentGateway: paymentInfo.paymentGateway || undefined,
+        provider: paymentInfo.provider || undefined,
+        verifiedAt: paymentInfo.verifiedAt ? new Date(paymentInfo.verifiedAt) : undefined,
         notes: paymentInfo.notes || undefined
       },
       deliveryInfo: {
