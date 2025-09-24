@@ -138,6 +138,8 @@ const createOrder = async (req, res) => {
         paymentNumber: paymentInfo.paymentNumber || undefined,
         paymentGateway: paymentInfo.paymentGateway || undefined,
         provider: paymentInfo.provider || undefined,
+        cardBrand: paymentInfo.cardBrand || undefined,
+        cardType: paymentInfo.cardType || undefined,
         verifiedAt: paymentInfo.verifiedAt ? new Date(paymentInfo.verifiedAt) : undefined,
         notes: paymentInfo.notes || undefined
       },

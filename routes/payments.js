@@ -163,7 +163,11 @@ router.post('/sslcommerz/success', async (req, res) => {
       }
 
       // Redirect to frontend success page with payment verification data
-      const successUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?order=${responseData.tran_id}&status=success&verified=true&transactionId=${verificationResult.data.transactionId}&provider=${encodeURIComponent(verificationResult.data.cardBrand || verificationResult.data.cardType || 'sslcommerz')}`;
+      const cardBrand = verificationResult.data.cardBrand || verificationResult.data.gatewayResponse?.card_brand || 'sslcommerz';
+      const cardType = verificationResult.data.cardType || verificationResult.data.gatewayResponse?.card_type || 'sslcommerz';
+      const provider = verificationResult.data.provider || cardBrand || cardType || 'sslcommerz';
+      
+      const successUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?order=${responseData.tran_id}&status=success&verified=true&transactionId=${verificationResult.data.transactionId}&provider=${encodeURIComponent(provider)}&cardBrand=${encodeURIComponent(cardBrand)}&cardType=${encodeURIComponent(cardType)}`;
       res.redirect(successUrl);
     } else {
       console.error('❌ Payment verification failed:', verificationResult);
