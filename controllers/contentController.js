@@ -1,7 +1,6 @@
 const HeroContent = require('../models/HeroContent');
 const SliderItem = require('../models/SliderItem');
 const { deleteImage } = require('../middleware/upload');
-const Announcement = require('../models/Announcement');
 
 // Get hero content
 const getHeroContent = async (req, res) => {
@@ -302,47 +301,3 @@ module.exports = {
   getPublicDeliverySettings
 }; 
 
-// Announcement - Public
-const getAnnouncement = async (req, res) => {
-  try {
-    const ann = await Announcement.getActive();
-    res.json({ success: true, announcement: ann || null });
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
-  }
-};
-
-// Announcement - Admin
-const createAnnouncement = async (req, res) => {
-  try {
-    const ann = await Announcement.create(req.body);
-    res.status(201).json({ success: true, announcement: ann });
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
-  }
-};
-
-const updateAnnouncement = async (req, res) => {
-  try {
-    const ann = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!ann) return res.status(404).json({ success: false, message: 'Not found' });
-    res.json({ success: true, announcement: ann });
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
-  }
-};
-
-const deleteAnnouncement = async (req, res) => {
-  try {
-    const ann = await Announcement.findByIdAndDelete(req.params.id);
-    if (!ann) return res.status(404).json({ success: false, message: 'Not found' });
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
-  }
-};
-
-module.exports.getAnnouncement = getAnnouncement;
-module.exports.createAnnouncement = createAnnouncement;
-module.exports.updateAnnouncement = updateAnnouncement;
-module.exports.deleteAnnouncement = deleteAnnouncement;

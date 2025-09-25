@@ -10,7 +10,6 @@ router.get('/hero', contentController.getHeroContent);
 router.get('/slider', contentController.getSliderItems);
 // Public delivery settings
 router.get('/delivery-settings', contentController.getPublicDeliverySettings);
-router.get('/announcement', contentController.getAnnouncement);
 
 // Admin routes - manage content
 router.put('/hero', protect, authorize('admin'), upload.heroImage.single('heroImage'), contentController.updateHeroContent);
@@ -19,9 +18,5 @@ router.put('/slider/:id', protect, authorize('admin'), upload.sliderImage.single
 router.delete('/slider/:id', protect, authorize('admin'), contentController.deleteSliderItem);
 router.put('/slider/reorder', protect, authorize('admin'), contentController.reorderSliderItems);
 
-// Admin - announcements
-router.post('/announcement', protect, authorize('admin'), contentController.createAnnouncement);
-router.put('/announcement/:id', protect, authorize('admin'), contentController.updateAnnouncement);
-router.delete('/announcement/:id', protect, authorize('admin'), contentController.deleteAnnouncement);
 
 module.exports = router; 
