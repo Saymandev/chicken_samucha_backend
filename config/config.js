@@ -31,8 +31,8 @@ module.exports = {
   SSLCOMMERZ_STORE_ID: process.env.SSLCOMMERZ_STORE_ID || 'your_store_id',
   SSLCOMMERZ_STORE_PASSWORD: process.env.SSLCOMMERZ_STORE_PASSWORD || 'your_store_password',
   SSLCOMMERZ_IS_SANDBOX: process.env.SSLCOMMERZ_IS_SANDBOX === 'true' || true,
-  SSLCOMMERZ_SUCCESS_URL: process.env.SSLCOMMERZ_SUCCESS_URL || 'https://chicken-samucha-frontend.vercel.app/success',
-  SSLCOMMERZ_FAIL_URL: process.env.SSLCOMMERZ_FAIL_URL || 'https://chicken-samucha-frontend.vercel.app/fail',
-  SSLCOMMERZ_CANCEL_URL: process.env.SSLCOMMERZ_CANCEL_URL || 'https://chicken-samucha-frontend.vercel.app/cancel',
-  SSLCOMMERZ_IPN_URL: process.env.SSLCOMMERZ_IPN_URL || 'https://your-backend-domain.com/api/payments/sslcommerz/ipn'
+  SSLCOMMERZ_SUCCESS_URL: process.env.SSLCOMMERZ_SUCCESS_URL || 'https://chicken-samucha-frontend.vercel.app/payment/success',
+  SSLCOMMERZ_FAIL_URL: process.env.SSLCOMMERZ_FAIL_URL || 'https://chicken-samucha-frontend.vercel.app/payment/fail',
+  SSLCOMMERZ_CANCEL_URL: process.env.SSLCOMMERZ_CANCEL_URL || 'https://chicken-samucha-frontend.vercel.app/payment/cancel',
+  SSLCOMMERZ_IPN_URL: process.env.SSLCOMMERZ_IPN_URL || 'https://chicken-samucha-backend.onrender.com/api/payments/sslcommerz/ipn'
 }; 
