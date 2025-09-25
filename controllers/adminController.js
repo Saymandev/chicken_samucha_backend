@@ -578,10 +578,7 @@ exports.getSliderItems = async (req, res) => {
     let query = {};
     if (search) {
       query.$or = [
-        { 'title.en': { $regex: search, $options: 'i' } },
-        { 'title.bn': { $regex: search, $options: 'i' } },
-        { 'description.en': { $regex: search, $options: 'i' } },
-        { 'description.bn': { $regex: search, $options: 'i' } }
+        { 'linkUrl': { $regex: search, $options: 'i' } }
       ];
     }
     

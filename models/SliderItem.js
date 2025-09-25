@@ -1,14 +1,6 @@
 const mongoose = require('mongoose');
 
 const sliderItemSchema = new mongoose.Schema({
-  title: {
-    en: { type: String, default: '' },
-    bn: { type: String, default: '' }
-  },
-  description: {
-    en: { type: String, default: '' },
-    bn: { type: String, default: '' }
-  },
   image: {
     url: { type: String, required: true },
     public_id: { type: String, required: true }
@@ -24,10 +16,6 @@ const sliderItemSchema = new mongoose.Schema({
   linkUrl: {
     type: String,
     default: ''
-  },
-  buttonText: {
-    en: { type: String, default: 'Learn More' },
-    bn: { type: String, default: 'আরও জানুন' }
   }
 }, {
   timestamps: true
