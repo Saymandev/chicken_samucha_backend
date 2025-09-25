@@ -164,7 +164,7 @@ class EmailService {
     }
   }
 
-  async sendSubscriptionWelcome(to, unsubscribeUrl, brand = { name: 'Chicken Samucha', emoji: '🍗' }) {
+  async sendSubscriptionWelcome(to, unsubscribeUrl, brand = { name: 'Pickplace', emoji: '🛒' }) {
     try {
       const transporter = await this.createTransporter();
       if (!transporter) {
@@ -261,7 +261,7 @@ class EmailService {
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 30px 40px; text-align: center;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                  🍗 Chicken Samucha
+                  🛒 Pickplace
                 </h1>
                 <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
                   Authentic Bangladeshi Cuisine
@@ -358,7 +358,7 @@ class EmailService {
               <!-- Footer -->
               <div style="background: #f8fafc; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
                 <p style="color: #6b7280; font-size: 14px; margin: 0 0 15px 0;">
-                  Thank you for choosing Chicken Samucha!
+                  Thank you for choosing Pickplace!
                 </p>
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                   If you have any questions, please don't hesitate to contact us.
@@ -430,7 +430,7 @@ class EmailService {
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 40px; text-align: center;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                  🍗 Chicken Samucha
+                  🛒 Pickplace
                 </h1>
                 <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
                   Authentic Bangladeshi Cuisine
@@ -516,7 +516,7 @@ class EmailService {
                   </h3>
                   <p style="color: #047857; font-size: 14px; margin: 0; line-height: 1.6;">
                     We hope you enjoyed your meal! Your feedback is valuable to us. 
-                    Thank you for choosing Chicken Samucha for your dining experience.
+                    Thank you for choosing Pickplace for your shopping experience.
                   </p>
                 </div>
 
@@ -525,7 +525,7 @@ class EmailService {
               <!-- Footer -->
               <div style="background: #f8fafc; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
                 <p style="color: #6b7280; font-size: 14px; margin: 0 0 15px 0;">
-                  Thank you for choosing Chicken Samucha!
+                  Thank you for choosing Pickplace!
                 </p>
                 <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                   If you have any questions, please don't hesitate to contact us.

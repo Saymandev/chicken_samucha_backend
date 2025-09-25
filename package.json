@@ -1,7 +1,7 @@
 {
-  "name": "chicken-samosa-backend",
+  "name": "pickplace-backend",
   "version": "1.0.0",
-  "description": "Backend API for Chicken Samosa Business",
+  "description": "Backend API for Pickplace Business",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
