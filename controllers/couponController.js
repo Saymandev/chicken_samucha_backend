@@ -236,7 +236,7 @@ const validateCoupon = async (req, res) => {
     }
 
     // Check if coupon is applicable to order
-    if (!coupon.isApplicableToOrder(orderAmount, userId, orderProducts)) {
+    if (!(await coupon.isApplicableToOrder(orderAmount, userId, orderProducts))) {
       return res.status(400).json({
         success: false,
         message: 'Coupon is not applicable to this order'
@@ -292,7 +292,7 @@ const applyCoupon = async (req, res) => {
       });
     }
 
-    if (!coupon.isApplicableToOrder(orderAmount, userId, orderProducts)) {
+    if (!(await coupon.isApplicableToOrder(orderAmount, userId, orderProducts))) {
       return res.status(400).json({
         success: false,
         message: 'Coupon is not applicable to this order'

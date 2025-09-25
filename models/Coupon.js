@@ -110,7 +110,7 @@ couponSchema.methods.isValid = function() {
 };
 
 // Method to check if coupon is applicable to order
-couponSchema.methods.isApplicableToOrder = function(orderAmount, userId, orderProducts) {
+couponSchema.methods.isApplicableToOrder = async function(orderAmount, userId, orderProducts) {
   if (!this.isValid()) return false;
   
   // Check minimum order amount
@@ -127,6 +127,25 @@ couponSchema.methods.isApplicableToOrder = function(orderAmount, userId, orderPr
   // Check user restrictions
   if (this.userRestrictions.specificUsers.length > 0) {
     if (!this.userRestrictions.specificUsers.includes(userId)) return false;
+  }
+  
+  // Check minimum order count and first time user restrictions
+  if (userId && (this.userRestrictions.minOrderCount > 0 || this.userRestrictions.firstTimeOnly)) {
+    const Order = require('./Order');
+    const userOrderCount = await Order.countDocuments({ 
+      'customer.id': userId,
+      status: { $in: ['delivered', 'completed'] } // Only count completed orders
+    });
+    
+    // Check minimum order count
+    if (this.userRestrictions.minOrderCount > 0 && userOrderCount < this.userRestrictions.minOrderCount) {
+      return false;
+    }
+    
+    // Check first time only restriction
+    if (this.userRestrictions.firstTimeOnly && userOrderCount > 0) {
+      return false;
+    }
   }
   
   return true;

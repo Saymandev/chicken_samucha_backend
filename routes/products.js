@@ -46,6 +46,8 @@ router.put('/bulk/update-availability', protect, authorize('admin'), productCont
 // Analytics routes (Admin only)
 router.get('/analytics/all', protect, authorize('admin'), productController.getAllProductsAnalytics);
 router.get('/:id/analytics', protect, authorize('admin'), productController.getProductAnalytics);
-router.post('/track-purchase', protect, productController.trackPurchase);
+
+// Public tracking routes
+router.post('/track-purchase', productController.trackPurchase);
 
 module.exports = router; 
