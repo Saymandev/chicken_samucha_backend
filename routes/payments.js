@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sslcommerzService = require('../services/sslcommerzService');
 const Order = require('../models/Order');
+const config = require('../config/config');
 
 // Multer configuration removed - no longer needed for SSLCommerz or COD
 
@@ -167,16 +168,23 @@ router.post('/sslcommerz/success', async (req, res) => {
       const cardType = verificationResult.data.cardType || verificationResult.data.gatewayResponse?.card_type || 'sslcommerz';
       const provider = verificationResult.data.provider || cardBrand || cardType || 'sslcommerz';
       
-      const successUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?order=${responseData.tran_id}&status=success&verified=true&transactionId=${verificationResult.data.transactionId}&provider=${encodeURIComponent(provider)}&cardBrand=${encodeURIComponent(cardBrand)}&cardType=${encodeURIComponent(cardType)}`;
+      const frontendUrl = process.env.FRONTEND_URL || config.FRONTEND_URL || 'https://www.pickplace.com.bd';
+      const successUrl = `${frontendUrl}/payment/success?order=${responseData.tran_id}&status=success&verified=true&transactionId=${verificationResult.data.transactionId}&provider=${encodeURIComponent(provider)}&cardBrand=${encodeURIComponent(cardBrand)}&cardType=${encodeURIComponent(cardType)}`;
+      
+      console.log('🔄 Redirecting to success URL:', successUrl);
       res.redirect(successUrl);
     } else {
       console.error('❌ Payment verification failed:', verificationResult);
-      const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${responseData.tran_id}&status=failed&reason=${encodeURIComponent(verificationResult.message)}`;
+      const frontendUrl = process.env.FRONTEND_URL || config.FRONTEND_URL || 'https://www.pickplace.com.bd';
+      const failUrl = `${frontendUrl}/payment/fail?order=${responseData.tran_id}&status=failed&reason=${encodeURIComponent(verificationResult.message)}`;
+      console.log('🔄 Redirecting to fail URL:', failUrl);
       res.redirect(failUrl);
     }
   } catch (error) {
     console.error('SSLCommerz success callback error:', error);
-    const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${req.body.tran_id || 'unknown'}&status=error&reason=${encodeURIComponent('Server error')}`;
+    const frontendUrl = process.env.FRONTEND_URL || config.FRONTEND_URL || 'https://www.pickplace.com.bd';
+    const failUrl = `${frontendUrl}/payment/fail?order=${req.body.tran_id || 'unknown'}&status=error&reason=${encodeURIComponent('Server error')}`;
+    console.log('🔄 Redirecting to error URL:', failUrl);
     res.redirect(failUrl);
   }
 });
@@ -198,7 +206,9 @@ router.post('/sslcommerz/fail', async (req, res) => {
       }
     }
 
-    const failUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/fail?order=${responseData.tran_id || 'unknown'}&status=failed&reason=${encodeURIComponent(responseData.failedreason || 'Payment failed')}`;
+    const frontendUrl = process.env.FRONTEND_URL || config.FRONTEND_URL || 'https://www.pickplace.com.bd';
+    const failUrl = `${frontendUrl}/payment/fail?order=${responseData.tran_id || 'unknown'}&status=failed&reason=${encodeURIComponent(responseData.failedreason || 'Payment failed')}`;
+    console.log('🔄 Redirecting to fail URL:', failUrl);
     res.redirect(failUrl);
   } catch (error) {
     console.error('SSLCommerz fail callback error:', error);
@@ -224,7 +234,9 @@ router.post('/sslcommerz/cancel', async (req, res) => {
       }
     }
 
-    const cancelUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?order=${responseData.tran_id || 'unknown'}&status=cancelled`;
+    const frontendUrl = process.env.FRONTEND_URL || config.FRONTEND_URL || 'https://www.pickplace.com.bd';
+    const cancelUrl = `${frontendUrl}/payment/cancel?order=${responseData.tran_id || 'unknown'}&status=cancelled`;
+    console.log('🔄 Redirecting to cancel URL:', cancelUrl);
     res.redirect(cancelUrl);
   } catch (error) {
     console.error('SSLCommerz cancel callback error:', error);
