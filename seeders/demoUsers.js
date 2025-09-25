@@ -17,7 +17,7 @@ const connectDB = async () => {
 const demoUsers = [
   {
     name: 'Admin User',
-    email: 'admin@chickensamosa.com',
+    email: 'admin@pickplace.com.bd',
     phone: '01712345678',
     password: 'admin123',
     role: 'admin',
@@ -71,7 +71,7 @@ const seedDemoUsers = async () => {
     
 
     // Check if demo users already exist
-    const existingAdmin = await User.findOne({ email: 'admin@chickensamosa.com' });
+    const existingAdmin = await User.findOne({ email: 'admin@pickplace.com.bd' });
     const existingUser = await User.findOne({ email: 'user@example.com' });
 
     if (existingAdmin && existingUser) {
@@ -82,7 +82,7 @@ const seedDemoUsers = async () => {
     // Clear existing demo users if any
     await User.deleteMany({ 
       email: { 
-        $in: ['admin@chickensamosa.com', 'user@example.com', 'rahim@example.com'] 
+        $in: ['admin@pickplace.com.bd', 'user@example.com', 'rahim@example.com'] 
       } 
     });
 

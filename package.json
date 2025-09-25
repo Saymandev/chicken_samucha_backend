@@ -1,7 +1,7 @@
 {
   "name": "pickplace-backend",
   "version": "1.0.0",
-  "description": "Backend API for Pickplace Business",
+  "description": "Backend API for Pickplace E-commerce Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

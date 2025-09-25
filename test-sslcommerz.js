@@ -53,7 +53,7 @@ async function testSSLCommerz() {
       ship_country: 'Bangladesh',
       multi_card_name: 'brac_visa,mastercard,dbbl_visa,dbbl_master,amex,internet_banking',
       value_a: 'TEST' + Date.now(),
-      value_b: 'chicken_samosa_order',
+      value_b: 'pickplace_ecommerce_order',
       value_c: 'online_payment',
       value_d: 'sslcommerz'
     };

@@ -50,14 +50,14 @@ const faqs = [
     id: 7,
     category: 'product',
     question: 'Are your samosas halal?',
-    answer: 'Yes, all our chicken samosas are 100% halal. We use only halal-certified chicken and ingredients.',
+    answer: 'Yes, we ensure all our products meet halal standards. We work with certified suppliers and maintain strict quality control.',
     isActive: true
   },
   {
     id: 8,
     category: 'product',
     question: 'Do you have vegetarian options?',
-    answer: 'Currently, we specialize in chicken samosas, but we\'re working on adding vegetarian options soon.',
+    answer: 'We offer a wide range of products including electronics, fashion, home goods, and more. Check our categories for the full selection.',
     isActive: true
   },
   {
