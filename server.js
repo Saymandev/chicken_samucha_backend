@@ -38,6 +38,7 @@ const couponRoutes = require('./routes/coupons');
 const categoryRoutes = require('./routes/category');
 const wishlistRoutes = require('./routes/wishlist');
 const navigationRoutes = require('./routes/navigation');
+const flashSaleRoutes = require('./routes/flashSales');
 
 // OAuth setup routes (for development/setup only)
 const oauthSetupRoutes = require('./routes/oauth-setup');
@@ -212,6 +213,7 @@ app.use('/api/promotions', publicPromotionRoutes);
 app.use('/api/refunds', refundRoutes);
 app.use('/api/admin/refunds', adminRefundRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/flash-sales', flashSaleRoutes);
 
 // OAuth setup routes (only in development)
 if (process.env.NODE_ENV === 'development') {
