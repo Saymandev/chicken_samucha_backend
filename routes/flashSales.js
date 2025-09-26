@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const flashSaleController = require('../controllers/flashSaleController');
-const { auth, adminAuth } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 // Validation middleware
 const flashSaleValidation = [
@@ -23,7 +23,8 @@ router.get('/upcoming', flashSaleController.getUpcomingFlashSales);
 router.get('/:id', flashSaleController.getFlashSaleById);
 
 // Admin routes
-router.use(auth, adminAuth); // All routes below require admin authentication
+router.use(protect); // All routes below require authentication
+router.use(authorize('admin')); // All routes below require admin role
 
 router.get('/', flashSaleController.getAllFlashSales);
 router.post('/', flashSaleValidation, flashSaleController.createFlashSale);
