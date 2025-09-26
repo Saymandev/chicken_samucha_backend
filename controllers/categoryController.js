@@ -41,7 +41,12 @@ exports.getAllCategories = async (req, res) => {
       
       // Add product count to each category
       categories = await Promise.all(categories.map(async (category) => {
-        const productCount = await Product.countDocuments({ category: category._id });
+        const productCount = await Product.countDocuments({ 
+          category: category._id,
+          isVisible: true,
+          isAvailable: true
+        });
+        console.log(`Category ${category.name.en} (${category.slug}) has ${productCount} products`);
         return { ...category.toObject(), productCount };
       }));
       
