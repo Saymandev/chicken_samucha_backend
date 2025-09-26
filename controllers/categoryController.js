@@ -114,6 +114,14 @@ exports.createCategory = async (req, res) => {
   try {
     const categoryData = req.body;
     
+    // Handle image upload
+    if (req.file) {
+      categoryData.image = {
+        url: req.file.path,
+        public_id: req.file.filename
+      };
+    }
+    
     // Check if slug already exists
     const existingCategory = await Category.findOne({ slug: categoryData.slug });
     if (existingCategory) {
@@ -151,6 +159,14 @@ exports.updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    
+    // Handle image upload
+    if (req.file) {
+      updateData.image = {
+        url: req.file.path,
+        public_id: req.file.filename
+      };
+    }
     
     // Check if slug is being changed and if it already exists
     if (updateData.slug) {

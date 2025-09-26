@@ -26,6 +26,7 @@ const createStorage = (folder, allowedFormats = ['jpg', 'jpeg', 'png', 'webp']) 
 
 // Different storage configurations
 const productImageStorage = createStorage('products');
+const categoryImageStorage = createStorage('categories');
 const heroImageStorage = createStorage('hero');
 const sliderImageStorage = createStorage('slider');
 const reviewImageStorage = createStorage('reviews');
@@ -62,6 +63,20 @@ const upload = {
       }
     }
   }),
+
+  categoryImage: multer({
+    storage: categoryImageStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'), false);
+      }
+    }
+  }).single('image'),
 
   heroImage: multer({
     storage: heroImageStorage,
