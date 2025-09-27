@@ -361,6 +361,27 @@ exports.updateOrderStatus = async (req, res) => {
           });
         }
       }
+
+      // Update flash sale soldCount when confirming order
+      try {
+        const FlashSale = require('../models/FlashSale');
+        for (const item of order.items) {
+          await FlashSale.updateOne(
+            {
+              isActive: true,
+              startTime: { $lte: new Date() },
+              endTime: { $gte: new Date() },
+              'products.product': item.product
+            },
+            {
+              $inc: { 'products.$.soldCount': item.quantity }
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error updating flash sale soldCount on order confirmation:', error);
+        // Don't fail the order confirmation if flash sale update fails
+      }
     }
 
     // If cancelling order, restore product stock
@@ -444,6 +465,27 @@ exports.verifyPayment = async (req, res) => {
       }
       
       order.set('orderStatus', 'confirmed');
+
+      // Update flash sale soldCount when auto-confirming order after payment verification
+      try {
+        const FlashSale = require('../models/FlashSale');
+        for (const item of order.items) {
+          await FlashSale.updateOne(
+            {
+              isActive: true,
+              startTime: { $lte: new Date() },
+              endTime: { $gte: new Date() },
+              'products.product': item.product
+            },
+            {
+              $inc: { 'products.$.soldCount': item.quantity }
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error updating flash sale soldCount on payment verification:', error);
+        // Don't fail the payment verification if flash sale update fails
+      }
     }
     
     await order.save();

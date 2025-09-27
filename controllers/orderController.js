@@ -85,6 +85,25 @@ const createOrder = async (req, res) => {
       // Update product stock
       product.stock -= item.quantity;
       await product.save();
+
+      // Update flash sale soldCount if this product is in an active flash sale
+      try {
+        const FlashSale = require('../models/FlashSale');
+        await FlashSale.updateOne(
+          {
+            isActive: true,
+            startTime: { $lte: new Date() },
+            endTime: { $gte: new Date() },
+            'products.product': product._id
+          },
+          {
+            $inc: { 'products.$.soldCount': item.quantity }
+          }
+        );
+      } catch (error) {
+        console.error('Error updating flash sale soldCount:', error);
+        // Don't fail the order if flash sale update fails
+      }
     }
 
     // Prepare order data with proper structure
