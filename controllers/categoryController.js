@@ -117,7 +117,47 @@ exports.getCategoryById = async (req, res) => {
 // Create new category
 exports.createCategory = async (req, res) => {
   try {
-    const categoryData = req.body;
+    let categoryData = { ...req.body };
+    
+    // Parse nested objects from FormData (similar to product creation)
+    try {
+      if (typeof categoryData.name === 'string') {
+        categoryData.name = JSON.parse(categoryData.name);
+      }
+      if (typeof categoryData.description === 'string') {
+        categoryData.description = JSON.parse(categoryData.description);
+      }
+      if (typeof categoryData.seoTitle === 'string') {
+        categoryData.seoTitle = JSON.parse(categoryData.seoTitle);
+      }
+      if (typeof categoryData.seoDescription === 'string') {
+        categoryData.seoDescription = JSON.parse(categoryData.seoDescription);
+      }
+      if (typeof categoryData.seoKeywords === 'string') {
+        categoryData.seoKeywords = JSON.parse(categoryData.seoKeywords);
+      }
+    } catch (parseError) {
+      console.error('FormData parsing error:', parseError);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid JSON data in form fields'
+      });
+    }
+    
+    // Validate required fields
+    if (!categoryData.name || !categoryData.name.en || !categoryData.name.bn) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category name in both English and Bengali is required'
+      });
+    }
+    
+    if (!categoryData.slug) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category slug is required'
+      });
+    }
     
     // Handle image upload
     if (req.file) {
@@ -146,15 +186,33 @@ exports.createCategory = async (req, res) => {
     });
   } catch (error) {
     console.error('Create category error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Category validation failed',
+        errors: validationErrors
+      });
+    }
+    
+    // Handle duplicate key errors
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: 'Category with this slug already exists'
       });
     }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to create category'
+      message: 'Failed to create category',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -163,7 +221,32 @@ exports.createCategory = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    let updateData = { ...req.body };
+    
+    // Parse nested objects from FormData (similar to create)
+    try {
+      if (typeof updateData.name === 'string') {
+        updateData.name = JSON.parse(updateData.name);
+      }
+      if (typeof updateData.description === 'string') {
+        updateData.description = JSON.parse(updateData.description);
+      }
+      if (typeof updateData.seoTitle === 'string') {
+        updateData.seoTitle = JSON.parse(updateData.seoTitle);
+      }
+      if (typeof updateData.seoDescription === 'string') {
+        updateData.seoDescription = JSON.parse(updateData.seoDescription);
+      }
+      if (typeof updateData.seoKeywords === 'string') {
+        updateData.seoKeywords = JSON.parse(updateData.seoKeywords);
+      }
+    } catch (parseError) {
+      console.error('FormData parsing error:', parseError);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid JSON data in form fields'
+      });
+    }
     
     // Handle image upload
     if (req.file) {
@@ -207,15 +290,33 @@ exports.updateCategory = async (req, res) => {
     });
   } catch (error) {
     console.error('Update category error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Category validation failed',
+        errors: validationErrors
+      });
+    }
+    
+    // Handle duplicate key errors
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: 'Category with this slug already exists'
       });
     }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to update category'
+      message: 'Failed to update category',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
