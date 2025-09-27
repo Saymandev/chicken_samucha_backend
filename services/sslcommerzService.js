@@ -50,8 +50,8 @@ class SSLCommerzService {
         cancel_url: config.SSLCOMMERZ_CANCEL_URL,
         ipn_url: config.SSLCOMMERZ_IPN_URL,
         shipping_method: 'NO',
-        product_name: 'Chicken Samosa Order',
-        product_category: 'Food',
+        product_name: 'Pickplace Order',
+        product_category: 'Ecommerce',
         product_profile: 'general',
         cus_name: customerName,
         cus_email: customerEmail,
@@ -72,7 +72,7 @@ class SSLCommerzService {
         ship_country: 'Bangladesh',
         multi_card_name: 'brac_visa,mastercard,dbbl_visa,dbbl_master,amex,internet_banking',
         value_a: orderNumber,
-        value_b: 'chicken_samosa_order',
+        value_b: 'pickplace_order',
         value_c: 'online_payment',
         value_d: 'sslcommerz'
       };
@@ -80,7 +80,7 @@ class SSLCommerzService {
       // Add cart items
       if (items && items.length > 0) {
         items.forEach((item, index) => {
-          postData[`cart[${index}][product]`] = item.name?.en || item.name || 'Chicken Samosa';
+          postData[`cart[${index}][product]`] = item.name?.en || item.name || 'Pickplace';
           postData[`cart[${index}][amount]`] = item.price;
           postData[`cart[${index}][quantity]`] = item.quantity;
         });
