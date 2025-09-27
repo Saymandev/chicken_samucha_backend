@@ -684,7 +684,7 @@ const getRelatedProducts = async (req, res) => {
     .populate('category', 'name slug')
     .sort({ 'analytics.viewCount': -1 })
     .limit(parseInt(limit))
-    .select('name price discountPrice images ratings analytics category');
+    .select('name price discountPrice images ratings analytics category stock isAvailable');
 
     res.json({
       success: true,
