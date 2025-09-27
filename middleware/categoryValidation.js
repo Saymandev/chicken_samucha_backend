@@ -53,8 +53,16 @@ const validateCategory = [
   
   body('parentCategory')
     .optional()
-    .isMongoId()
-    .withMessage('Parent category must be a valid MongoDB ObjectId'),
+    .custom((value) => {
+      // Allow empty string, null, or undefined for parent categories
+      if (!value || value === '' || value === null || value === undefined) {
+        return true;
+      }
+      // If value is provided, it must be a valid MongoDB ObjectId
+      const mongoose = require('mongoose');
+      return mongoose.Types.ObjectId.isValid(value);
+    })
+    .withMessage('Parent category must be a valid MongoDB ObjectId or empty for parent categories'),
   
   body('isSubcategory')
     .optional()

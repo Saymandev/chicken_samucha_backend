@@ -136,6 +136,22 @@ exports.createCategory = async (req, res) => {
       if (typeof categoryData.seoKeywords === 'string') {
         categoryData.seoKeywords = JSON.parse(categoryData.seoKeywords);
       }
+      
+      // Handle parentCategory - set to null if empty for parent categories
+      if (categoryData.parentCategory === '' || categoryData.parentCategory === 'null' || categoryData.parentCategory === null) {
+        categoryData.parentCategory = null;
+      }
+      
+      // Handle boolean fields
+      if (typeof categoryData.isActive === 'string') {
+        categoryData.isActive = categoryData.isActive === 'true';
+      }
+      if (typeof categoryData.isSubcategory === 'string') {
+        categoryData.isSubcategory = categoryData.isSubcategory === 'true';
+      }
+      if (typeof categoryData.sortOrder === 'string') {
+        categoryData.sortOrder = parseInt(categoryData.sortOrder) || 0;
+      }
     } catch (parseError) {
       console.error('FormData parsing error:', parseError);
       return res.status(400).json({
@@ -239,6 +255,22 @@ exports.updateCategory = async (req, res) => {
       }
       if (typeof updateData.seoKeywords === 'string') {
         updateData.seoKeywords = JSON.parse(updateData.seoKeywords);
+      }
+      
+      // Handle parentCategory - set to null if empty for parent categories
+      if (updateData.parentCategory === '' || updateData.parentCategory === 'null' || updateData.parentCategory === null) {
+        updateData.parentCategory = null;
+      }
+      
+      // Handle boolean fields
+      if (typeof updateData.isActive === 'string') {
+        updateData.isActive = updateData.isActive === 'true';
+      }
+      if (typeof updateData.isSubcategory === 'string') {
+        updateData.isSubcategory = updateData.isSubcategory === 'true';
+      }
+      if (typeof updateData.sortOrder === 'string') {
+        updateData.sortOrder = parseInt(updateData.sortOrder) || 0;
       }
     } catch (parseError) {
       console.error('FormData parsing error:', parseError);
